@@ -1,0 +1,269 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-editorial: 'Newsreader', Georgia, serif;
+    --font-script: 'Caveat', cursive;
+  }
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.font-editorial {
+  font-family: var(--font-editorial);
+}
+
+.font-script {
+  font-family: var(--font-script);
+}
+
+/* Custom editorial aesthetics & paper textures for Baby Pink & White theme */
+.bg-warm-canvas {
+  background-color: #fff5f7;
+}
+
+.bg-dark-canvas {
+  background-color: #fff0f4;
+}
+
+.bg-dark-surface {
+  background-color: #ffffff;
+}
+
+.border-warm {
+  border-color: rgba(244, 114, 182, 0.35);
+}
+
+.accent-amber {
+  color: #db2777;
+}
+
+.bg-accent-amber {
+  background-color: #f472b6;
+}
+
+/* Halftone / dotted accent pattern */
+.dot-pattern {
+  background-image: radial-gradient(rgba(244, 114, 182, 0.25) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+
+.dot-pattern-light {
+  background-image: radial-gradient(rgba(219, 39, 119, 0.15) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+
+.press-badge {
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fff5f7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #fbcfe8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f472b6;
+}
+
+/* ==========================================================================
+   🌙 DARK MODE: Sophisticated Obsidian & Rose Editorial Styling
+   ========================================================================== */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0d0c12;
+  color: #f5f3ef;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #0d0c12;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #2b2738;
+  border-radius: 4px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #463e58;
+}
+
+/* Base canvas overrides in dark mode */
+html.dark .bg-\[\#fff5f7\],
+html.dark .bg-\[\#fff5f8\] {
+  background-color: #0d0c12 !important;
+}
+
+html.dark .bg-\[\#fff8fa\] {
+  background-color: #121118 !important;
+}
+
+html.dark .bg-\[\#fff0f4\] {
+  background-color: #16151f !important;
+}
+
+html.dark .bg-warm-canvas {
+  background-color: #0d0c12 !important;
+}
+
+html.dark .bg-dark-canvas {
+  background-color: #16151f !important;
+}
+
+/* Surfaces and Cards */
+html.dark .bg-white {
+  background-color: #1a1924 !important;
+}
+
+html.dark .bg-white\/95,
+html.dark .bg-white\/90,
+html.dark .bg-white\/80 {
+  background-color: rgba(26, 25, 36, 0.95) !important;
+}
+
+html.dark .bg-pink-50,
+html.dark .bg-pink-50\/70,
+html.dark .bg-pink-50\/80,
+html.dark .bg-pink-50\/90 {
+  background-color: #232130 !important;
+}
+
+html.dark .bg-pink-100,
+html.dark .bg-pink-100\/80,
+html.dark .bg-pink-100\/90 {
+  background-color: #2b283a !important;
+}
+
+html.dark .bg-pink-200,
+html.dark .bg-pink-300 {
+  background-color: #38344c !important;
+}
+
+/* Hover surfaces */
+html.dark .hover\:bg-pink-50:hover,
+html.dark .hover\:bg-pink-100:hover,
+html.dark .hover\:bg-white:hover {
+  background-color: #272436 !important;
+}
+
+/* Borders in Dark Mode */
+html.dark .border-pink-100,
+html.dark .border-pink-200,
+html.dark .border-pink-200\/80,
+html.dark .border-pink-200\/90,
+html.dark .border-pink-300 {
+  border-color: rgba(244, 114, 182, 0.18) !important;
+}
+
+html.dark .border-warm {
+  border-color: rgba(244, 114, 182, 0.22) !important;
+}
+
+/* Text Contrast in Dark Mode */
+html.dark .text-zinc-900,
+html.dark .text-zinc-800 {
+  color: #f5f3ef !important;
+}
+
+html.dark .text-zinc-700,
+html.dark .text-zinc-600 {
+  color: #c9c5c0 !important;
+}
+
+html.dark .text-zinc-500 {
+  color: #98938c !important;
+}
+
+html.dark .text-pink-900,
+html.dark .text-pink-800 {
+  color: #fbcfe8 !important;
+}
+
+html.dark .text-pink-700 {
+  color: #f472b6 !important;
+}
+
+/* Dotted patterns in dark mode */
+html.dark .dot-pattern {
+  background-image: radial-gradient(rgba(244, 114, 182, 0.18) 1.5px, transparent 1.5px);
+}
+
+html.dark .dot-pattern-light {
+  background-image: radial-gradient(rgba(244, 114, 182, 0.12) 1.5px, transparent 1.5px);
+}
+
+/* Form controls & inputs */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea,
+html.dark select {
+  background-color: #14131d !important;
+  color: #f5f3ef !important;
+  border-color: rgba(244, 114, 182, 0.25) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #7b7680 !important;
+}
+
+/* Header & Navbars in dark mode */
+html.dark #main-navbar {
+  background-color: rgba(13, 12, 18, 0.9) !important;
+  border-bottom-color: rgba(244, 114, 182, 0.15) !important;
+}
+
+html.dark #mobile-nav-drawer {
+  background-color: rgba(18, 17, 24, 0.98) !important;
+  border-bottom-color: rgba(244, 114, 182, 0.2) !important;
+}
+
+/* Modals in Dark Mode */
+html.dark #story-preview-modal-content,
+html.dark #share-links-modal-content,
+html.dark #portfolio-editor-modal-content,
+html.dark #change-photo-modal-content,
+html.dark #unlock-editor-modal-content,
+html.dark [role="dialog"] {
+  background-color: #171622 !important;
+  border-color: rgba(244, 114, 182, 0.25) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Floating Owner Dock in dark mode */
+html.dark #floating-owner-cms-dock {
+  background-color: rgba(22, 21, 31, 0.95) !important;
+  border-color: rgba(244, 114, 182, 0.3) !important;
+}
+
+/* Footer in dark mode */
+html.dark #main-footer {
+  background-color: #100f17 !important;
+  border-top-color: rgba(244, 114, 182, 0.15) !important;
+}
+

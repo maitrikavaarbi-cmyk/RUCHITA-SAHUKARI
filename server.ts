@@ -1,0 +1,702 @@
+/**
+ * Copyright (c) 2026 Ruchita Sahukari. All Rights Reserved.
+ *
+ * PROPRIETARY AND CONFIDENTIAL:
+ * Unauthorized copying, distribution, or recreation of this backend server code
+ * and portfolio data management system is strictly prohibited.
+ */
+
+import express from "express";
+import path from "path";
+import { createServer as createViteServer } from "vite";
+import dotenv from "dotenv";
+import { GoogleGenAI, Type } from "@google/genai";
+
+dotenv.config();
+
+const app = express();
+const PORT = 3000;
+
+app.use(express.json({ limit: "10mb" }));
+
+// Lazy Gemini client helper
+let aiClient: GoogleGenAI | null = null;
+function getGeminiClient(): GoogleGenAI | null {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+  if (!aiClient) {
+    aiClient = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
+      },
+    });
+  }
+  return aiClient;
+}
+
+// Health check endpoint
+app.get("/api/health", (_req, res) => {
+  res.json({
+    status: "ok",
+    hasGeminiKey: !!process.env.GEMINI_API_KEY,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Persistent Portfolio Storage
+const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_FILE = path.join(DATA_DIR, "portfolio.json");
+
+// Helper to ensure data directory exists
+async function ensureDataDir() {
+  const fs = await import("fs/promises");
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+  } catch (err) {
+    // Directory may already exist
+  }
+}
+
+// GET saved portfolio data
+app.get("/api/portfolio", async (_req, res) => {
+  try {
+    const fs = await import("fs/promises");
+    await ensureDataDir();
+    try {
+      const data = await fs.readFile(DATA_FILE, "utf-8");
+      return res.json({ success: true, data: JSON.parse(data) });
+    } catch {
+      // File doesn't exist yet, return null
+      return res.json({ success: true, data: null });
+    }
+  } catch (error: any) {
+    console.error("Error reading portfolio data:", error);
+    return res.status(500).json({ error: "Failed to read portfolio data" });
+  }
+});
+
+// POST save portfolio data (published from Editor)
+app.post("/api/portfolio", async (req, res) => {
+  try {
+    const { profile, works, reviews } = req.body;
+    if (!profile && !works) {
+      return res.status(400).json({ error: "Invalid portfolio payload" });
+    }
+    const fs = await import("fs/promises");
+    await ensureDataDir();
+    
+    const payloadToSave = {
+      profile,
+      works,
+      reviews: reviews || [],
+      lastUpdated: new Date().toISOString()
+    };
+    
+    await fs.writeFile(DATA_FILE, JSON.stringify(payloadToSave, null, 2), "utf-8");
+    console.log("Successfully persisted updated portfolio data to server disk.");
+    return res.json({ success: true, message: "Portfolio saved and published live to all visitors!" });
+  } catch (error: any) {
+    console.error("Error saving portfolio data:", error);
+    return res.status(500).json({ error: "Failed to persist portfolio data" });
+  }
+});
+
+// POST reset portfolio to default
+app.post("/api/portfolio/reset", async (_req, res) => {
+  try {
+    const fs = await import("fs/promises");
+    await ensureDataDir();
+    try {
+      await fs.unlink(DATA_FILE);
+    } catch {}
+    return res.json({ success: true, message: "Portfolio reset to initial defaults." });
+  } catch (error: any) {
+    console.error("Error resetting portfolio data:", error);
+    return res.status(500).json({ error: "Failed to reset portfolio data" });
+  }
+});
+
+// AI Generation for Portfolio Entries (Bylines, Apps, Research, Essays, Campaigns, etc.)
+app.post("/api/ai/generate-portfolio-entry", async (req, res) => {
+  try {
+    const {
+      title,
+      url,
+      typeOrFormat = "article",
+      category = "journalism",
+      publicationOrPlatform,
+      rawContentOrNotes = "",
+      tone = "journalistic",
+      action = "generate_all",
+    } = req.body;
+
+    if (!title && !rawContentOrNotes && !url) {
+      return res.status(400).json({
+        error: "Please provide at least a title, link, or brief notes to generate an overview.",
+      });
+    }
+
+    const ai = getGeminiClient();
+    if (!ai) {
+      // Return a smart template fallback if API key is not configured yet
+      const formatLabel =
+        typeOrFormat === "app"
+          ? "interactive web application"
+          : typeOrFormat === "research"
+          ? "academic research study"
+          : typeOrFormat === "case_study"
+          ? "in-depth case study"
+          : typeOrFormat === "essay"
+          ? "long-form analytical essay"
+          : typeOrFormat === "reel"
+          ? "on-camera video report"
+          : typeOrFormat === "carousel"
+          ? "curated news carousel"
+          : "journalistic investigation";
+
+      return res.json({
+        success: true,
+        isFallback: true,
+        message: "Generated via structured template. Connect GEMINI_API_KEY in Secrets for real-time generative intelligence.",
+        data: {
+          excerpt: `A comprehensive ${formatLabel} examining "${title || "the project"}" ${publicationOrPlatform ? `presented on ${publicationOrPlatform}` : ""}, highlighting critical takeaways, methodology, and key community impacts.`,
+          fullDescription: `"${title || "This project"}" is a ${formatLabel} that delivers in-depth analysis and accessible presentation for modern audiences.\n\nDeveloped with rigorous attention to detail, the initiative explores core systemic factors, field-tested methodologies, and real-world implications. It provides readers, users, and researchers with actionable context and verifiable insights.`,
+          keyTakeaways: [
+            `Comprehensive field-informed analysis and structured delivery`,
+            `High-clarity presentation tailored for digital and mobile audiences`,
+            `Methodical verification, ethical standards, and contextual depth`,
+            `Impactful takeaways for community stakeholders and practitioners`
+          ],
+          tags: [
+            typeOrFormat === "app" ? "DigitalApp" : typeOrFormat === "research" ? "ResearchPaper" : "Journalism",
+            category === "the_lit_scroll" ? "AcademicProject" : "FieldReport",
+            "EditorialAnalysis",
+            "Storytelling"
+          ],
+          suggestedReadTimeOrDuration: typeOrFormat === "app" ? "Interactive Web App" : typeOrFormat === "research" ? "Research Study" : "4 min read",
+        },
+      });
+    }
+
+    const prompt = `
+You are an expert editorial writer, journalism advisor, and professional portfolio copywriter for Ruchita Sahukari, a talented journalist, communications strategist, and researcher (PG Diploma in English Journalism from IIMC Dhenkanal).
+
+Task: Generate a polished, professional portfolio entry based on the user's input. Note that this can be a news byline/article, an interactive web app/tool (like Ethicly), an academic research paper, an in-depth Substack essay, a broadcast reel/PTC, a carousel report, or a communications campaign.
+
+Input Details:
+- Title / Headline: "${title || "Untitled"}"
+- Format / Type: "${typeOrFormat}" (e.g. article, app, research, case_study, essay, carousel, reel, campaign)
+- Category: "${category}"
+- Publication / Platform / Source: "${publicationOrPlatform || "Not specified"}"
+- Link / URL: "${url || "Not specified"}"
+- Rough Notes / Pasted Copy / Excerpt: "${rawContentOrNotes || "None provided"}"
+- Tone: "${tone}"
+- Requested Action: "${action}"
+
+Requirements:
+1. "excerpt": A sharp, compelling 1-2 sentence lead summary (under 40 words) that captures the core essence, hook, and significance of the work.
+2. "fullDescription": A rich, structured 2-3 paragraph professional overview explaining the background, on-ground investigation or technical methodology, key questions explored, and societal/practical impact. Include formatting where helpful.
+3. "keyTakeaways": An array of exactly 4 concise, high-impact bullet points highlighting major revelations, methodological features, or user benefits.
+4. "tags": An array of 4 to 6 clean, camelCase or TitleCase topic tags (e.g., ["MediaEthics", "DigitalApp", "InvestigativeReporting"]).
+5. "suggestedReadTimeOrDuration": A short label representing format duration (e.g. "Interactive Web App", "5 min read", "12-page Report", "2 min watch").
+
+Write with precision, intellectual depth, and sophisticated tone. Avoid buzzwords like 'supercharge' or 'empower'.
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            excerpt: {
+              type: Type.STRING,
+              description: "A punchy 1-2 sentence lead summary",
+            },
+            fullDescription: {
+              type: Type.STRING,
+              description: "Detailed 2-3 paragraph overview and background context",
+            },
+            keyTakeaways: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "4 impactful key highlights or takeaways",
+            },
+            tags: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "4-6 relevant topic tags",
+            },
+            suggestedReadTimeOrDuration: {
+              type: Type.STRING,
+              description: "Duration or format badge label",
+            },
+          },
+          required: [
+            "excerpt",
+            "fullDescription",
+            "keyTakeaways",
+            "tags",
+            "suggestedReadTimeOrDuration",
+          ],
+        },
+      },
+    });
+
+    const jsonText = response.text || "{}";
+    const parsedData = JSON.parse(jsonText);
+
+    return res.json({
+      success: true,
+      data: parsedData,
+    });
+  } catch (error: any) {
+    console.error("Gemini portfolio generation error:", error);
+    return res.status(500).json({
+      error: error.message || "Failed to generate portfolio entry",
+      details: String(error),
+    });
+  }
+});
+
+// AI Generation for Work Summary (Executive Summary, LinkedIn Post, Elevator Pitch, Key Impact)
+app.post("/api/ai/generate-work-summary", async (req, res) => {
+  try {
+    const {
+      title,
+      category = "journalism",
+      publicationOrPlatform,
+      excerpt = "",
+      fullDescription = "",
+      keyTakeaways = [],
+      targetAudience = "recruiter_editor", // recruiter_editor, public_linkedin, academic_grant
+    } = req.body;
+
+    if (!title && !excerpt && !fullDescription) {
+      return res.status(400).json({
+        error: "Please provide work details to generate a work summary.",
+      });
+    }
+
+    const ai = getGeminiClient();
+    if (!ai) {
+      // High-quality structured fallback
+      return res.json({
+        success: true,
+        isFallback: true,
+        data: {
+          executiveSummary: `"${title || "This work"}" demonstrates rigorous editorial investigation and strategic storytelling published via ${publicationOrPlatform || "media platforms"}. It combines grounded field reporting with clear analytical communication, delivering measurable awareness and actionable stakeholder insights.`,
+          elevatorPitch: `An in-depth ${category} initiative examining "${title || "core investigative questions"}", translating complex socio-ethical realities into accessible, high-impact public reporting.`,
+          linkedinPost: `Excited to share my work on "${title || "this initiative"}" published with ${publicationOrPlatform || "our editorial team"}!\n\n🔍 Key Focus: ${excerpt || "Delivering grounded, ethical storytelling on vital systemic issues."}\n\n💡 Read the complete analysis and findings in my portfolio: https://ruchita-portfolio.vercel.app\n\n#Journalism #MediaEthics #Storytelling #PublicInterest`,
+          keyImpactMetrics: [
+            "Conducted on-ground investigative interviews and field verification",
+            "Synthesized multi-source evidence into clear, verifiable reporting",
+            "Prioritized inclusive representation, accessibility, and ethical framing",
+            "Delivered actionable takeaways for readers, researchers, and community leaders"
+          ],
+          recommendedBioSnippet: `Author of "${title || "investigative reports"}" (${publicationOrPlatform || "featured publication"}), focusing on social equity, accessibility, and transparent media communication.`
+        }
+      });
+    }
+
+    const prompt = `
+You are an expert editorial strategist and communications director for Ruchita Sahukari (PG Diploma in English Journalism from IIMC Dhenkanal).
+
+Task: Generate a comprehensive, multi-format professional Work Summary for the following portfolio entry:
+
+Work Details:
+- Title: "${title || "Untitled"}"
+- Category: "${category}"
+- Publication / Platform: "${publicationOrPlatform || "Not specified"}"
+- Lead Excerpt: "${excerpt}"
+- Full Description: "${fullDescription}"
+- Key Takeaways: ${JSON.stringify(keyTakeaways)}
+- Target Audience: "${targetAudience}"
+
+Requirements:
+1. "executiveSummary": A powerful, cohesive paragraph (80-120 words) articulating the scope, investigative methodology, and lasting significance of this work for editors and hiring managers.
+2. "elevatorPitch": A sharp 2-sentence spoken pitch (under 40 words) that Ruchita could say in an interview or conference.
+3. "linkedinPost": A professional, engaging LinkedIn announcement (with clean line breaks, bullet points, and 3-5 relevant hashtags) sharing this work.
+4. "keyImpactMetrics": An array of exactly 4 impact bullet points highlighting research rigor, ethical integrity, audience resonance, and craft.
+5. "recommendedBioSnippet": A single 1-sentence byline/resume bullet summarizing this accomplishment.
+
+Ensure high editorial polish, professional composure, and zero generic buzzwords.
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            executiveSummary: {
+              type: Type.STRING,
+              description: "Executive paragraph summary",
+            },
+            elevatorPitch: {
+              type: Type.STRING,
+              description: "2-sentence elevator pitch",
+            },
+            linkedinPost: {
+              type: Type.STRING,
+              description: "Full LinkedIn post text",
+            },
+            keyImpactMetrics: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "4 impactful bullet points",
+            },
+            recommendedBioSnippet: {
+              type: Type.STRING,
+              description: "1-sentence resume/byline bullet",
+            },
+          },
+          required: [
+            "executiveSummary",
+            "elevatorPitch",
+            "linkedinPost",
+            "keyImpactMetrics",
+            "recommendedBioSnippet",
+          ],
+        },
+      },
+    });
+
+    const jsonText = response.text || "{}";
+    const parsedData = JSON.parse(jsonText);
+
+    return res.json({
+      success: true,
+      data: parsedData,
+    });
+  } catch (error: any) {
+    console.error("Gemini work summary error:", error);
+    return res.status(500).json({
+      error: error.message || "Failed to generate work summary",
+      details: String(error),
+    });
+  }
+});
+
+// AI Generation for Career Summary, Cover Letter Blurb & Portfolio Pitch
+app.post("/api/ai/generate-career-summary", async (req, res) => {
+  try {
+    const {
+      targetRole = "Journalist & Communications Specialist",
+      specializationFocus = "Investigative Journalism, Field Reporting, Media Ethics, and Strategic Public Relations",
+      profileData,
+      worksList = [],
+    } = req.body;
+
+    const ai = getGeminiClient();
+    if (!ai) {
+      return res.json({
+        success: true,
+        isFallback: true,
+        data: {
+          headlinePitch: "Dedicated Journalist & Strategic Communicator translating complex societal challenges into clear, ethical, and high-impact stories.",
+          careerSummary: `Ruchita Sahukari is an English Journalism graduate from the Indian Institute of Mass Communication (IIMC Dhenkanal) specializing in field reporting, media ethics, digital storytelling, and corporate communications. With published bylines in The Hans India, leadership in digital news initiatives like The Lit Scroll, and creation of interactive journalism tools such as Ethicly, she pairs investigative rigor with empathetic public interest reporting.`,
+          coverLetterBlurb: `As a journalism and communications professional trained at IIMC Dhenkanal, I bring a unique combination of on-ground investigative experience, ethical clarity, and modern multimedia storytelling. From reporting on disability rights and accessibility for national publications to directing high-engagement visual news series, I am committed to producing work that informs communities and drives measurable engagement.`,
+          keyCompetencies: [
+            "Investigative & Field Journalism (The Hans India bylines, accessibility audits)",
+            "Multimedia Newsroom Production (The Lit Scroll video reels, scripts, anchor PTCs)",
+            "Media Ethics & Digital Tool Development (Founder of Ethicly)",
+            "Long-form Analysis & Substack Essays (Cultural critique, media literacy)",
+            "Strategic Corporate & Non-Profit Communications (Advocacy copy, press releases)"
+          ],
+          interviewTalkingPoints: [
+            "Proven track record of turning overlooked community issues into national published bylines",
+            "Hands-on expertise across print, broadcast video (PTC), digital apps, and newsletter platforms",
+            "Uncompromising dedication to verification, ethical standards, and accessibility"
+          ]
+        }
+      });
+    }
+
+    const prompt = `
+You are a senior career mentor and editorial recruiter crafting high-level executive career summaries for Ruchita Sahukari.
+
+Background:
+- Candidate: Ruchita Sahukari
+- Education: PG Diploma in English Journalism, IIMC Dhenkanal ('26)
+- Core Pillars: Ethical Journalism & Bylines (The Hans India), Multimedia Storytelling (The Lit Scroll Group E), Digital Tools (Ethicly), Substack Essays, Corporate Communications.
+- Core Identity: Passionate communicator, disability advocate (Osteogenesis Imperfecta—navigating field with pride and equality).
+- Target Role: "${targetRole}"
+- Specialization Focus: "${specializationFocus}"
+- Sample Works Included: ${JSON.stringify(worksList.slice(0, 5).map((w: any) => ({ title: w.title, platform: w.publicationOrPlatform, format: w.format })))}
+
+Task: Generate a customized, compelling Career Summary package.
+
+Requirements:
+1. "headlinePitch": A punchy, authoritative 1-sentence value proposition headline (under 25 words).
+2. "careerSummary": A sophisticated, comprehensive 2-paragraph career overview highlighting editorial rigor, multimedia agility, and strategic communication outcomes.
+3. "coverLetterBlurb": A versatile 3-paragraph tailored cover letter blurb ready to paste into job applications or fellowship proposals.
+4. "keyCompetencies": An array of 5 distinct, high-level core competency bullet points with concrete evidence.
+5. "interviewTalkingPoints": An array of 3 crisp talking points for executive hiring managers or editors.
+
+Write with intellectual elegance, authority, and warmth.
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            headlinePitch: {
+              type: Type.STRING,
+              description: "1-sentence executive headline pitch",
+            },
+            careerSummary: {
+              type: Type.STRING,
+              description: "2-paragraph professional career summary",
+            },
+            coverLetterBlurb: {
+              type: Type.STRING,
+              description: "Tailored cover letter blurb",
+            },
+            keyCompetencies: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "5 core competency bullets",
+            },
+            interviewTalkingPoints: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "3 talking points for interviews",
+            },
+          },
+          required: [
+            "headlinePitch",
+            "careerSummary",
+            "coverLetterBlurb",
+            "keyCompetencies",
+            "interviewTalkingPoints",
+          ],
+        },
+      },
+    });
+
+    const jsonText = response.text || "{}";
+    const parsedData = JSON.parse(jsonText);
+
+    return res.json({
+      success: true,
+      data: parsedData,
+    });
+  } catch (error: any) {
+    console.error("Gemini career summary error:", error);
+    return res.status(500).json({
+      error: error.message || "Failed to generate career summary",
+      details: String(error),
+    });
+  }
+});
+
+// AI Generation for Experience & Internship Bullet Points
+app.post("/api/ai/generate-experience-bullets", async (req, res) => {
+  try {
+    const {
+      role,
+      organization,
+      period,
+      roughNotes = "",
+      experienceType = "internship", // job, internship, research, leadership
+    } = req.body;
+
+    if (!role && !organization && !roughNotes) {
+      return res.status(400).json({
+        error: "Please provide role and organization details.",
+      });
+    }
+
+    const ai = getGeminiClient();
+    if (!ai) {
+      return res.json({
+        success: true,
+        isFallback: true,
+        data: {
+          polishedRole: role || "Journalism & Communications Intern",
+          polishedOrganization: organization || "Editorial Organization",
+          polishedDescription: `Led editorial research, ground interviews, and story formulation under tight newsroom deadlines, ensuring strict adherence to media ethics and factual accuracy.`,
+          bulletPoints: [
+            `Authored and pitched verified news stories and comprehensive field analyses on deadline`,
+            `Conducted primary source interviews with community stakeholders, administrators, and subject matter experts`,
+            `Drafted engaging multi-platform copy adapted for digital readers and social channels`,
+            `Collaborated with senior editors to maintain rigorous fact-checking and ethical reporting standards`
+          ],
+          skillsUsed: ["Field Reporting", "Fact Checking", "Editorial Research", "Multi-Platform Writing", "Media Ethics"]
+        }
+      });
+    }
+
+    const prompt = `
+You are an expert resume writer and journalism mentor for Ruchita Sahukari (IIMC Dhenkanal).
+
+Task: Generate polished, accomplishment-oriented resume bullet points and an executive description for a ${experienceType} entry:
+
+Details:
+- Role / Title: "${role || "Journalism Role"}"
+- Organization: "${organization || "Media Organization"}"
+- Time Period: "${period || "Recent"}"
+- Rough Notes / Achievements: "${roughNotes || "Handled reporting, drafting articles, interviewing sources, and digital publishing."}"
+
+Requirements:
+1. "polishedRole": Clean, standardized title.
+2. "polishedOrganization": Standardized organization name.
+3. "polishedDescription": A concise 2-sentence overview of the scope and core responsibilities.
+4. "bulletPoints": Exactly 4 high-impact resume bullet points starting with strong action verbs (e.g., Investigated, Spearheaded, Authored, Coordinated, Synthesized) highlighting measurable impact, journalistic rigor, and communication excellence.
+5. "skillsUsed": Array of 4-6 relevant skill tags.
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            polishedRole: { type: Type.STRING },
+            polishedOrganization: { type: Type.STRING },
+            polishedDescription: { type: Type.STRING },
+            bulletPoints: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+            skillsUsed: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+          },
+          required: [
+            "polishedRole",
+            "polishedOrganization",
+            "polishedDescription",
+            "bulletPoints",
+            "skillsUsed",
+          ],
+        },
+      },
+    });
+
+    const jsonText = response.text || "{}";
+    const parsedData = JSON.parse(jsonText);
+
+    return res.json({
+      success: true,
+      data: parsedData,
+    });
+  } catch (error: any) {
+    console.error("Gemini experience bullets error:", error);
+    return res.status(500).json({
+      error: error.message || "Failed to generate experience bullets",
+      details: String(error),
+    });
+  }
+});
+
+// AI Certificate Summarizer Endpoint
+app.post("/api/ai/summarize-certificate", async (req, res) => {
+  try {
+    const { title, issuer, issueDate, credentialId, rawDetails, skills } = req.body;
+    const ai = getGeminiClient();
+
+    if (!ai) {
+      return res.json({
+        success: true,
+        isFallback: true,
+        data: {
+          title: title || "Professional Certification",
+          issuer: issuer || "Accredited Institution",
+          issueDate: issueDate || "Recent",
+          credentialId: credentialId || "VERIFIED-CREDENTIAL",
+          description: rawDetails || `Verified credential awarded by ${issuer || "the issuing body"} demonstrating professional mastery and field competencies.`,
+          skills: skills && skills.length > 0 ? skills : ["Professional Excellence", "Industry Standards", "Verified Skills"]
+        }
+      });
+    }
+
+    const prompt = `
+You are an expert editorial writer and career advisor for Ruchita Sahukari, a professional journalist and communications strategist (IIMC Dhenkanal).
+
+Task: Summarize and polish a Certificate / Credential / Award entry for her portfolio.
+
+Input:
+- Title / Award Name: "${title || "Not specified"}"
+- Issuer / Institution / Org: "${issuer || "Not specified"}"
+- Date / Year: "${issueDate || "Not specified"}"
+- Credential ID / URL: "${credentialId || "Not specified"}"
+- Raw Notes / Syllabus / Description: "${rawDetails || "Not provided"}"
+- Suggested Skills: "${skills ? skills.join(", ") : ""}"
+
+Requirements:
+1. "title": Crisp, formal credential name.
+2. "issuer": Verified formal name of institution/organization.
+3. "description": A high-impact 2-sentence summary of the competencies mastered, rigors completed, and practical industry relevance.
+4. "skills": Array of 3-5 concise skill tags (e.g. ["Investigative Reporting", "Digital Media", "Public Policy"]).
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            issuer: { type: Type.STRING },
+            description: { type: Type.STRING },
+            skills: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            }
+          },
+          required: ["title", "issuer", "description", "skills"]
+        }
+      }
+    });
+
+    const jsonText = response.text || "{}";
+    const parsed = JSON.parse(jsonText);
+    return res.json({ success: true, data: parsed });
+  } catch (error: any) {
+    console.error("Gemini certificate summarizer error:", error);
+    return res.status(500).json({ error: error.message || "Failed to summarize certificate" });
+  }
+});
+
+// Vite middleware & Static serving
+async function startServer() {
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
+    app.get("*", (_req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
+  }
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Portfolio server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer();
