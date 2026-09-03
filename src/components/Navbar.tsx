@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { UserProfile, PortfolioMode } from '../types';
 import { ThemeToggle } from './ThemeToggle';
+import { copyToClipboardSafe } from '../utils/clipboard';
 
 interface NavbarProps {
   profile: UserProfile;
@@ -59,11 +60,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleShareClick = () => {
+  const handleShareClick = async () => {
     if (onOpenShareModal) {
       onOpenShareModal();
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText('https://maitrikavaarbi-cmyk.github.io/RUCHITA-SAHUKARI/');
+    } else {
+      await copyToClipboardSafe('https://maitrikavaarbi-cmyk.github.io/RUCHITA-SAHUKARI/');
     }
   };
 

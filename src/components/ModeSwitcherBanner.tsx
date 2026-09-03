@@ -18,6 +18,7 @@ import {
   Key
 } from 'lucide-react';
 import { PortfolioMode, UserProfile } from '../types';
+import { copyToClipboardSafe } from '../utils/clipboard';
 
 interface ModeSwitcherBannerProps {
   mode: PortfolioMode;
@@ -45,12 +46,10 @@ export const ModeSwitcherBanner: React.FC<ModeSwitcherBannerProps> = ({
   const publicUrl = OFFICIAL_PORTFOLIO_URL;
   const adminUrl = `${OFFICIAL_PORTFOLIO_URL}?edit=ruchita`;
 
-  const copyToClipboard = (text: string, type: 'public' | 'admin') => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text);
-      setCopiedType(type);
-      setTimeout(() => setCopiedType(null), 2500);
-    }
+  const copyToClipboard = async (text: string, type: 'public' | 'admin') => {
+    await copyToClipboardSafe(text);
+    setCopiedType(type);
+    setTimeout(() => setCopiedType(null), 2500);
   };
 
   // When in public mode: don't show any distracting banner across the top!

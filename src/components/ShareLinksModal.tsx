@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   X, 
   Share2, 
@@ -15,6 +15,7 @@ import {
   Send
 } from 'lucide-react';
 import { PortfolioMode } from '../types';
+import { copyToClipboardSafe } from '../utils/clipboard';
 
 interface ShareLinksModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({
   currentMode = 'public'
 }) => {
   const [copiedType, setCopiedType] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
@@ -46,12 +48,14 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({
   const substackUrl = `${OFFICIAL_PORTFOLIO_URL}#substack`;
   const contactUrl = `${OFFICIAL_PORTFOLIO_URL}#contact`;
 
-  const copyToClipboard = (text: string, type: string) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text);
-      setCopiedType(type);
-      setTimeout(() => setCopiedType(null), 2500);
+  const copyToClipboard = async (text: string, type: string) => {
+    // If copying main URL, also highlight input
+    if (type === 'public' && inputRef.current) {
+      inputRef.current.select();
     }
+    await copyToClipboardSafe(text);
+    setCopiedType(type);
+    setTimeout(() => setCopiedType(null), 2500);
   };
 
   const shareTitle = "Ruchita Sahukari — Journalism & Media Portfolio";
@@ -67,10 +71,10 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({
         });
       } catch (err) {
         // User cancelled or share failed, fallback to copy
-        copyToClipboard(publicPortfolioUrl, 'public');
+        await copyToClipboard(publicPortfolioUrl, 'public');
       }
     } else {
-      copyToClipboard(publicPortfolioUrl, 'public');
+      await copyToClipboard(publicPortfolioUrl, 'public');
     }
   };
 
@@ -125,15 +129,18 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({
 
           <div className="flex items-center gap-2 pt-1">
             <input
+              ref={inputRef}
               type="text"
               readOnly
               value={publicPortfolioUrl}
-              className="flex-1 bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-emerald-300 font-mono select-all focus:outline-none"
+              onClick={() => copyToClipboard(publicPortfolioUrl, 'public')}
+              title="Click to copy link"
+              className="flex-1 bg-zinc-950 hover:bg-zinc-900 border border-white/10 hover:border-[#d9823e]/50 rounded-xl px-3.5 py-2.5 text-xs text-emerald-300 font-mono select-all focus:outline-none transition-colors cursor-pointer"
             />
             <button
               id="share-modal-copy-btn"
               onClick={() => copyToClipboard(publicPortfolioUrl, 'public')}
-              className="px-4 py-2.5 rounded-xl bg-[#d9823e] hover:bg-[#c4712f] text-black font-bold text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-md"
+              className="px-4 py-2.5 rounded-xl bg-[#d9823e] hover:bg-[#c4712f] text-black font-bold text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-md active:scale-95"
             >
               {copiedType === 'public' ? (
                 <>
