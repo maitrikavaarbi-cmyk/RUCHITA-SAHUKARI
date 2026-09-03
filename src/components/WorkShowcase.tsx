@@ -43,13 +43,13 @@ export const WorkShowcase: React.FC<WorkShowcaseProps> = ({
   const categories = useMemo(() => {
     const allCategories: { id: WorkCategory; label: string }[] = [
       { id: 'all', label: 'All Works' },
-      { id: 'journalism', label: 'Journalism & Bylines' },
-      { id: 'the_lit_scroll', label: 'Academic & The Lit Scroll' },
-      { id: 'apps', label: 'Apps & Tools' },
       { id: 'research', label: 'Research & Papers' },
-      { id: 'substack', label: 'Substack In-Depth' },
+      { id: 'journalism', label: 'Journalism & Bylines' },
       { id: 'instagram', label: 'Instagram & Carousels' },
-      { id: 'communications', label: 'Communications' }
+      { id: 'substack', label: 'Substack In-Depth' },
+      { id: 'the_lit_scroll', label: 'The Lit Scroll (Academic)' },
+      { id: 'apps', label: 'Apps & Tools' },
+      { id: 'communications', label: 'Communications & PR' }
     ];
     return allCategories.filter(cat => cat.id === 'all' || works.some(w => w.category === cat.id));
   }, [works]);
@@ -142,10 +142,10 @@ export const WorkShowcase: React.FC<WorkShowcaseProps> = ({
               </span>
             </div>
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 tracking-tight">
-              Featured Work & Bylines
+              Featured Works, Research & Bylines
             </h2>
             <p className="text-sm sm:text-base text-zinc-600 mt-2 max-w-2xl font-sans">
-              Explore ground reportage published in national media, digital carousels from The Lit Scroll academic project, in-depth Substack essays, and strategic communications.
+              Explore academic research studies, on-ground investigative journalism, Instagram visual carousels, Substack essays, and interactive digital tools.
             </p>
           </div>
 
@@ -157,10 +157,10 @@ export const WorkShowcase: React.FC<WorkShowcaseProps> = ({
                   id="work-add-new-btn"
                   onClick={onOpenAddModal}
                   className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-pink-500/20 cursor-pointer transition-all hover:scale-105"
-                  title="Upload or add new article, Substack story, app, or case study"
+                  title="Add or publish research study, Instagram work, Substack story, byline, or app"
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span>+ Upload Work / Byline</span>
+                  <span>+ Add Work / Research</span>
                   <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/25 text-white text-[10px] font-mono font-bold">
                     {works.length}
                   </span>

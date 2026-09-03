@@ -137,26 +137,138 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
     setTimeout(() => setSaveNotification(null), 3500);
   };
 
+  // Apply preset values based on selected category (Research, Instagram, Substack, Byline, etc.)
+  const applyCategoryPreset = (category: WorkItem['category'], isNewForm: boolean = false) => {
+    setWorkCategory(category);
+    switch (category) {
+      case 'research':
+        setWorkFormat('research');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform('IIMC Dhenkanal • Research & Field Study');
+        }
+        if (isNewForm || !workDuration) setWorkDuration('Academic Paper');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('AcademicResearch, PolicyAnalysis, FieldStudy, MediaEthics');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('Empirical field and qualitative study\nStakeholder surveys & policy framework review\nEvidence-based institutional recommendations');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
+      case 'instagram':
+        setWorkFormat('carousel');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform('Instagram (@sancharionwheel)');
+        }
+        if (isNewForm || !workDuration) setWorkDuration('6-slide carousel');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('Instagram, VisualJournalism, CarouselReport, DigitalStory');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('Visual multi-slide infographic breakdown\nOn-ground mobile reporting\nFact-checked statistics and public awareness');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
+      case 'substack':
+        setWorkFormat('essay');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform("Ruchita's Substack");
+        }
+        if (isNewForm || !workDuration) setWorkDuration('5 min read');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('Substack, Longform, Essay, InDepth, SocialAnalysis');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('Deep-dive narrative essay\nHuman-centered first-person perspective\nContextual analysis of overlooked issues');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
+      case 'the_lit_scroll':
+        setWorkFormat('reel');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform('The Lit Scroll (@the_lit.scrol) - Group E');
+        }
+        if (isNewForm || !workDuration) setWorkDuration('0:50 reel');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('TheLitScroll, PeaceToCamera, MobileNews, GroupE, IIMC');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('On-camera Piece to Camera (PTC) news reporting\nCollaborative Group E academic journalism initiative\n"No cap, just facts" fast digital reporting');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
+      case 'apps':
+        setWorkFormat('app');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform('Academic Innovation • Interactive Web App');
+        }
+        if (isNewForm || !workDuration) setWorkDuration('Interactive Web App');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('InteractiveApp, DigitalJournalism, Innovation, WebTool, Vercel');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('Live web-based interactive tool\nSolves real journalistic workflow and ethics challenges\nAccessible and tested directly in-browser');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
+      case 'communications':
+        setWorkFormat('case_study');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform('Strategic Communications & PR');
+        }
+        if (isNewForm || !workDuration) setWorkDuration('Case Study');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('CorporateComms, PRStrategy, BrandVoice, AdvocacyCampaign');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('Audience persona targeting and messaging matrix\nMulti-channel campaign deployment\nMeasurable community impact and brand advocacy');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
+      case 'journalism':
+      default:
+        setWorkFormat('article');
+        if (isNewForm || !workPlatform) setWorkPlatform('The Hans India');
+        if (isNewForm || !workDuration) setWorkDuration('4 min read');
+        if (isNewForm || !workTags) setWorkTags('Journalism, Investigation, MediaEthics, CivicIssues');
+        if (isNewForm || !workTakeaways) {
+          setWorkTakeaways('Rigorous on-ground reporting\nVerified source interviews\nAccessible storytelling');
+        }
+        if (isNewForm || !workImage) {
+          setWorkImage('https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=800&auto=format&fit=crop');
+        }
+        break;
+    }
+  };
+
   // Reset or Start Work Form
-  const handleStartAddWork = () => {
+  const handleStartAddWork = (categoryPreset?: WorkItem['category']) => {
     setIsAddingWork(true);
     setEditingWorkId(null);
     setWorkTitle('');
-    setWorkCategory('journalism');
-    setWorkPlatform('The Hans India');
     setWorkUrl('');
     setWorkDate(new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
     setWorkExcerpt('');
     setWorkDescription('');
-    setWorkImage('https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=800&auto=format&fit=crop');
-    setWorkTags('Journalism, Investigation, MediaEthics');
-    setWorkTakeaways('Rigorous on-ground reporting\nVerified source interviews\nAccessible storytelling');
-    setWorkFormat('article');
-    setWorkDuration('4 min read');
     setWorkFeatured(false);
     setAiRawContext('');
     setAiError(null);
     setAiSuccessMessage(null);
+
+    const targetCategory = categoryPreset || 'journalism';
+    applyCategoryPreset(targetCategory, true);
   };
 
   const handleStartEditWork = (work: WorkItem) => {
@@ -615,19 +727,19 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                     <div>
                       <h3 className="font-serif text-lg font-bold text-white flex items-center gap-2">
                         <BookOpen className="w-5 h-5 text-[#d9823e]" />
-                        <span>Published Bylines, Apps & Research Items</span>
+                        <span>Published Works, Research, Articles & Social Posts</span>
                       </h3>
                       <p className="text-zinc-400 text-xs mt-0.5">
-                        Add or edit any news article, investigative report, interactive app (Ethicly), Substack essay, or video reel.
+                        Add or manage research papers, Instagram carousels/reels, Substack essays, news bylines, or web tools.
                       </p>
                     </div>
 
                     <button
-                      onClick={handleStartAddWork}
+                      onClick={() => handleStartAddWork()}
                       className="px-4 py-2 rounded-xl bg-[#d9823e] hover:bg-[#c4712f] text-black font-bold text-xs flex items-center gap-1.5 shadow-md shrink-0 cursor-pointer"
                     >
                       <Plus className="w-4 h-4" />
-                      <span>Add New Work / Byline</span>
+                      <span>Add Work / Project / Paper</span>
                     </button>
                   </div>
 
@@ -695,10 +807,10 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <div>
                       <h3 className="font-serif text-lg font-bold text-white">
-                        {isAddingWork ? 'Add New Work / Byline' : 'Edit Portfolio Work'}
+                        {isAddingWork ? 'Add New Project / Work / Research' : 'Edit Portfolio Project'}
                       </h3>
                       <p className="text-zinc-400 text-xs mt-0.5">
-                        Fill in work metadata, cover photo, links, and use Gemini AI to generate executive copy.
+                        Add or edit research papers, Instagram carousels/reels, Substack essays, news bylines, or web tools.
                       </p>
                     </div>
                     <button
@@ -871,6 +983,50 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                     )}
                   </div>
 
+                  {/* Quick Category / Project Type Selector */}
+                  <div className="space-y-2.5 p-3.5 rounded-2xl bg-zinc-950/70 border border-white/10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                      <label className="text-zinc-200 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#d9823e]" />
+                        <span>Work / Project Medium (Tap to auto-fill format & defaults)</span>
+                      </label>
+                      <span className="text-[10px] text-zinc-400">Supports research papers, Instagram, Substack, bylines & tools</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                      {[
+                        { id: 'research', label: 'Research Paper', icon: '🔬', desc: 'Academic & Policy' },
+                        { id: 'instagram', label: 'Instagram', icon: '📸', desc: 'Carousel / Reel / Post' },
+                        { id: 'substack', label: 'Substack', icon: '✍️', desc: 'In-Depth Essay' },
+                        { id: 'journalism', label: 'News Byline', icon: '📰', desc: 'Press / The Hans India' },
+                        { id: 'the_lit_scroll', label: 'The Lit Scroll', icon: '🎓', desc: 'Academic Project / PTC' },
+                        { id: 'apps', label: 'Web Tool / App', icon: '💻', desc: 'e.g. Ethicly' },
+                        { id: 'communications', label: 'Comms & PR', icon: '📢', desc: 'Corporate / Strategy' },
+                      ].map((preset) => {
+                        const isSelected = workCategory === preset.id;
+                        return (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => applyCategoryPreset(preset.id as any)}
+                            className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
+                              isSelected
+                                ? 'bg-[#d9823e]/20 border-[#d9823e] text-white shadow-md shadow-[#d9823e]/20 ring-1 ring-[#d9823e]'
+                                : 'bg-zinc-900/90 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/25 hover:bg-zinc-800/80'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-base">{preset.icon}</span>
+                              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#d9823e]" />}
+                            </div>
+                            <div className="font-bold text-[11px] text-white leading-tight truncate">{preset.label}</div>
+                            <div className="text-[9px] text-zinc-400 truncate mt-0.5">{preset.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Basic Info: Title & Platform */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -882,7 +1038,7 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                         required
                         value={workTitle}
                         onChange={(e) => setWorkTitle(e.target.value)}
-                        placeholder="e.g. Disability Rights & Public Transport Accessibility"
+                        placeholder="e.g. Universal Accessibility & Public Infrastructure Audit"
                         className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none"
                       />
                     </div>
@@ -896,7 +1052,7 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                         required
                         value={workPlatform}
                         onChange={(e) => setWorkPlatform(e.target.value)}
-                        placeholder="e.g. The Hans India / The Lit Scroll / Substack"
+                        placeholder="e.g. IIMC Academic Research / Instagram / Substack / The Hans India"
                         className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none"
                       />
                     </div>
@@ -910,13 +1066,16 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                       </label>
                       <select
                         value={workCategory}
-                        onChange={(e) => setWorkCategory(e.target.value as any)}
+                        onChange={(e) => applyCategoryPreset(e.target.value as any)}
                         className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:border-[#d9823e] focus:outline-none"
                       >
-                        <option value="journalism">Journalism & National Bylines</option>
-                        <option value="the_lit_scroll">The Lit Scroll (Academic/PTC)</option>
-                        <option value="substack">Substack Long-form & Essays</option>
-                        <option value="communications">Corporate & PR Communications</option>
+                        <option value="research">🔬 Academic & Field Research Paper / Study</option>
+                        <option value="instagram">📸 Instagram Content (Carousels, Reels, Visual Reports)</option>
+                        <option value="substack">✍️ Substack Long-form, Newsletter & Deep-dive Essay</option>
+                        <option value="journalism">📰 Journalism & National News Byline (The Hans India, etc.)</option>
+                        <option value="the_lit_scroll">🎓 Academic Project & Collaboration (The Lit Scroll, IIMC)</option>
+                        <option value="apps">💻 Interactive Web App & Digital Media Tool (e.g. Ethicly)</option>
+                        <option value="communications">📢 Corporate Communications, PR & Brand Strategy</option>
                       </select>
                     </div>
 
@@ -929,13 +1088,14 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                         onChange={(e) => setWorkFormat(e.target.value as any)}
                         className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:border-[#d9823e] focus:outline-none"
                       >
-                        <option value="article">Print / Digital Article</option>
-                        <option value="app">Interactive Web App / Tool (e.g. Ethicly)</option>
-                        <option value="research">Academic Research Paper</option>
-                        <option value="essay">Long-form Essay / Newsletter</option>
-                        <option value="reel">Video Broadcast / PTC Reel</option>
-                        <option value="carousel">Social Carousel Report</option>
-                        <option value="case_study">Communications Case Study</option>
+                        <option value="research">Academic / Field Research Paper</option>
+                        <option value="carousel">Social Media Carousel / Visual Slide Deck</option>
+                        <option value="reel">Video Broadcast / Piece to Camera (PTC) Reel</option>
+                        <option value="essay">Long-form Essay / Substack Newsletter</option>
+                        <option value="article">Print / Digital News Article Byline</option>
+                        <option value="app">Interactive Web Application / Digital Tool</option>
+                        <option value="case_study">Communications Case Study / Policy Brief</option>
+                        <option value="campaign">Public Advocacy & Media Campaign</option>
                       </select>
                     </div>
 
