@@ -137,7 +137,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li><a href="#the-lit-scroll" className="hover:text-pink-600 transition-colors">The Lit Scroll (Group E)</a></li>
               <li><a href="#substack" className="hover:text-pink-600 transition-colors">Substack Publications</a></li>
               <li><a href="#about" className="hover:text-pink-600 transition-colors">About & Experience</a></li>
-              <li><a href="#testimonials" className="hover:text-pink-600 transition-colors">Recommendations & Feedback</a></li>
+              <li><a href="#recommendations" className="hover:text-pink-600 transition-colors">Recommendations & Feedback</a></li>
               <li><a href="#contact" className="hover:text-pink-600 transition-colors">Contact & Connect</a></li>
             </ul>
           </div>

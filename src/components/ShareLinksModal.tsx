@@ -46,6 +46,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({
   const journalismUrl = `${OFFICIAL_PORTFOLIO_URL}#journalism`;
   const litScrollUrl = `${OFFICIAL_PORTFOLIO_URL}#the-lit-scroll`;
   const substackUrl = `${OFFICIAL_PORTFOLIO_URL}#substack`;
+  const recommendationsUrl = `${OFFICIAL_PORTFOLIO_URL}#recommendations`;
   const contactUrl = `${OFFICIAL_PORTFOLIO_URL}#contact`;
 
   const copyToClipboard = async (text: string, type: string) => {
@@ -288,6 +289,20 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({
                 title="Copy section link"
               >
                 {copiedType === 'substack' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-semibold text-white">Recommendations</div>
+                <div className="text-[10px] text-zinc-400 font-mono">/#recommendations</div>
+              </div>
+              <button
+                onClick={() => copyToClipboard(recommendationsUrl, 'recommendations')}
+                className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium cursor-pointer"
+                title="Copy section link"
+              >
+                {copiedType === 'recommendations' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
 

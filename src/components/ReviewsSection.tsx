@@ -147,7 +147,10 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     : '5.0';
 
   return (
-    <section id="reviews" className="py-20 bg-[#fff5f8] text-zinc-900 border-b border-pink-200/80 relative scroll-mt-16">
+    <section id="recommendations" className="py-20 bg-[#fff5f8] text-zinc-900 border-b border-pink-200/80 relative scroll-mt-20">
+      {/* Anchor targets for multiple hash conventions */}
+      <span id="testimonials" className="absolute -top-24 pointer-events-none" aria-hidden="true" />
+      <span id="reviews" className="absolute -top-24 pointer-events-none" aria-hidden="true" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* If NO reviews yet: Show single unified endorsement invite card */}

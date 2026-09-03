@@ -76,9 +76,25 @@ export const Navbar: React.FC<NavbarProps> = ({
     { label: 'Substack', href: '#substack' },
     { label: 'Communications', href: '#communications' },
     { label: 'About', href: '#about' },
-    { label: 'Recommendations', href: '#testimonials' },
+    { label: 'Recommendations', href: '#recommendations' },
     { label: 'Contact', href: '#contact' },
   ];
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('#')) {
+      const targetId = href.slice(1);
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        e.preventDefault();
+        targetEl.scrollIntoView({ behavior: 'smooth' });
+        try {
+          window.history.pushState(null, '', href);
+        } catch (_) {
+          // ignore if restricted
+        }
+      }
+    }
+  };
 
   return (
     <header 
@@ -117,6 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               key={link.label}
               id={`nav-link-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
               href={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
               className="px-3 py-1.5 text-xs xl:text-sm font-medium text-zinc-700 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-all duration-200"
             >
               {link.label}
@@ -290,7 +307,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 key={link.label}
                 id={`mobile-link-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
                 href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  handleNavClick(e, link.href);
+                }}
                 className="px-3 py-2 text-sm font-medium text-zinc-700 hover:text-pink-600 hover:bg-pink-50 rounded-lg"
               >
                 {link.label}
