@@ -35,18 +35,16 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Transform private ais-dev URL to the public, always-active ais-pre shared URL
-  const currentOrigin = window.location.origin;
-  const publicOrigin = currentOrigin.includes('ais-dev-')
-    ? currentOrigin.replace('ais-dev-', 'ais-pre-')
-    : currentOrigin;
+  // Official published GitHub Pages portfolio URL
+  const OFFICIAL_PORTFOLIO_URL = 'https://maitrikavaarbi-cmyk.github.io/RUCHITA-SAHUKARI/';
 
-  const publicPortfolioUrl = `${publicOrigin}/`;
-  const adminEditUrl = `${publicOrigin}/?edit=ruchita`;
-  const journalismUrl = `${publicOrigin}/#journalism`;
-  const litScrollUrl = `${publicOrigin}/#the-lit-scroll`;
-  const substackUrl = `${publicOrigin}/#substack`;
-  const contactUrl = `${publicOrigin}/#contact`;
+  const publicPortfolioUrl = OFFICIAL_PORTFOLIO_URL;
+  const adminEditUrl = `${OFFICIAL_PORTFOLIO_URL}?edit=ruchita`;
+  const workUrl = `${OFFICIAL_PORTFOLIO_URL}#work`;
+  const journalismUrl = `${OFFICIAL_PORTFOLIO_URL}#journalism`;
+  const litScrollUrl = `${OFFICIAL_PORTFOLIO_URL}#the-lit-scroll`;
+  const substackUrl = `${OFFICIAL_PORTFOLIO_URL}#substack`;
+  const contactUrl = `${OFFICIAL_PORTFOLIO_URL}#contact`;
 
   const copyToClipboard = (text: string, type: string) => {
     if (navigator.clipboard) {
@@ -149,6 +147,15 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({
                 </>
               )}
             </button>
+            <a
+              href={publicPortfolioUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors flex items-center justify-center cursor-pointer border border-white/10 shrink-0"
+              title="Open live site in new tab"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
           </div>
         </div>
 
@@ -221,6 +228,20 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="p-3 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-semibold text-white">Research & Works</div>
+                <div className="text-[10px] text-zinc-400 font-mono">/#work</div>
+              </div>
+              <button
+                onClick={() => copyToClipboard(workUrl, 'work')}
+                className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium cursor-pointer"
+                title="Copy section link"
+              >
+                {copiedType === 'work' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
             <div className="p-3 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-white">Journalism Bylines</div>

@@ -63,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (onOpenShareModal) {
       onOpenShareModal();
     } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText('https://maitrikavaarbi-cmyk.github.io/RUCHITA-SAHUKARI/');
     }
   };
 

@@ -40,14 +40,10 @@ export const ModeSwitcherBanner: React.FC<ModeSwitcherBannerProps> = ({
 }) => {
   const [copiedType, setCopiedType] = useState<'public' | 'admin' | null>(null);
 
-  // Compute clean public and admin URLs
-  const currentOrigin = window.location.origin;
-  const publicOrigin = currentOrigin.includes('ais-dev-')
-    ? currentOrigin.replace('ais-dev-', 'ais-pre-')
-    : currentOrigin;
-
-  const publicUrl = `${publicOrigin}/`;
-  const adminUrl = `${publicOrigin}/?edit=ruchita`;
+  // User's official live portfolio URL
+  const OFFICIAL_PORTFOLIO_URL = 'https://maitrikavaarbi-cmyk.github.io/RUCHITA-SAHUKARI/';
+  const publicUrl = OFFICIAL_PORTFOLIO_URL;
+  const adminUrl = `${OFFICIAL_PORTFOLIO_URL}?edit=ruchita`;
 
   const copyToClipboard = (text: string, type: 'public' | 'admin') => {
     if (navigator.clipboard) {
