@@ -121,7 +121,7 @@ app.post("/api/portfolio/reset", async (_req, res) => {
   }
 });
 
-// AI Generation for Portfolio Entries (Bylines, Apps, Research, Essays, Campaigns, etc.)
+// AI Generation for Portfolio Entries (Bylines, Magazines, Films, Apps, Research, Essays, Campaigns, etc.)
 app.post("/api/ai/generate-portfolio-entry", async (req, res) => {
   try {
     const {
@@ -129,83 +129,96 @@ app.post("/api/ai/generate-portfolio-entry", async (req, res) => {
       url,
       typeOrFormat = "article",
       category = "journalism",
+      projectType = "",
+      rolePlayed = "",
+      collaborators = "",
       publicationOrPlatform,
       rawContentOrNotes = "",
       tone = "journalistic",
       action = "generate_all",
     } = req.body;
 
-    if (!title && !rawContentOrNotes && !url) {
+    if (!title && !rawContentOrNotes && !url && !projectType) {
       return res.status(400).json({
-        error: "Please provide at least a title, link, or brief notes to generate an overview.",
+        error: "Please provide at least a title, what the work is, link, or brief notes to generate an overview.",
       });
     }
 
     const ai = getGeminiClient();
     if (!ai) {
-      // Return a smart template fallback if API key is not configured yet
-      const formatLabel =
-        typeOrFormat === "app"
-          ? "interactive web application"
-          : typeOrFormat === "research"
-          ? "academic research study"
-          : typeOrFormat === "case_study"
-          ? "in-depth case study"
-          : typeOrFormat === "essay"
-          ? "long-form analytical essay"
-          : typeOrFormat === "reel"
-          ? "on-camera video report"
-          : typeOrFormat === "carousel"
-          ? "curated news carousel"
-          : "journalistic investigation";
+      // Smart tailored template fallback when API key is not yet set
+      const displayWhat = projectType || (
+        typeOrFormat === "app" ? "interactive web application"
+        : typeOrFormat === "research" ? "research and policy study"
+        : typeOrFormat === "case_study" ? "in-depth case study / client deliverable"
+        : typeOrFormat === "campaign" ? "strategic corporate campaign"
+        : typeOrFormat === "project" ? "fellowship initiative / project"
+        : typeOrFormat === "essay" ? "long-form analytical essay"
+        : typeOrFormat === "reel" ? "on-camera video report"
+        : typeOrFormat === "carousel" ? "curated visual carousel"
+        : typeOrFormat === "film" ? "short film / visual production"
+        : typeOrFormat === "magazine" ? "print publication / editorial magazine"
+        : "featured creative initiative"
+      );
+
+      const roleSnippet = rolePlayed ? `as ${rolePlayed}` : "as lead contributor and producer";
+      const collabSnippet = collaborators ? ` in collaboration with ${collaborators}` : "";
+      const platformSnippet = publicationOrPlatform ? ` presented via ${publicationOrPlatform}` : "";
 
       return res.json({
         success: true,
         isFallback: true,
         message: "Generated via structured template. Connect GEMINI_API_KEY in Secrets for real-time generative intelligence.",
         data: {
-          excerpt: `A comprehensive ${formatLabel} examining "${title || "the project"}" ${publicationOrPlatform ? `presented on ${publicationOrPlatform}` : ""}, highlighting critical takeaways, methodology, and key community impacts.`,
-          fullDescription: `"${title || "This project"}" is a ${formatLabel} that delivers in-depth analysis and accessible presentation for modern audiences.\n\nDeveloped with rigorous attention to detail, the initiative explores core systemic factors, field-tested methodologies, and real-world implications. It provides readers, users, and researchers with actionable context and verifiable insights.`,
+          excerpt: `"${title || "This project"}" is a ${displayWhat}${platformSnippet}, featuring Ruchita Sahukari ${roleSnippet}${collabSnippet}, delivering structured execution and verifiable outcomes.`,
+          fullDescription: `"${title || "This project"}" is an ambitious ${displayWhat}${platformSnippet}.\n\nWorking ${roleSnippet}${collabSnippet}, the project was developed through rigorous planning, research, and creative storytelling. It explores core objectives while balancing narrative clarity, stakeholder needs, and high production standards.\n\nThe finished work provides audiences, clients, and partners with contextual depth, practical takeaways, and verified quality.`,
           keyTakeaways: [
-            `Comprehensive field-informed analysis and structured delivery`,
-            `High-clarity presentation tailored for digital and mobile audiences`,
-            `Methodical verification, ethical standards, and contextual depth`,
-            `Impactful takeaways for community stakeholders and practitioners`
+            `Spearheaded core deliverables ${roleSnippet}${collabSnippet}`,
+            `Integrated rigorous research, ethical standards, and contextual messaging`,
+            `High-clarity presentation tailored for digital, print, or broadcast audiences`,
+            `Measurable stakeholder engagement and verified editorial or campaign impact`
           ],
           tags: [
-            typeOrFormat === "app" ? "DigitalApp" : typeOrFormat === "research" ? "ResearchPaper" : "Journalism",
-            category === "the_lit_scroll" ? "AcademicProject" : "FieldReport",
-            "EditorialAnalysis",
-            "Storytelling"
+            projectType ? projectType.replace(/\s+/g, '') : "CreativeWork",
+            rolePlayed ? rolePlayed.replace(/\s+/g, '') : "EditorialLeadership",
+            "Communications",
+            "Strategy",
+            category === "corporate" ? "CorporateComms" : category === "fellowship" ? "Fellowship" : category === "film_media" ? "FilmProduction" : "PortfolioShowcase"
           ],
-          suggestedReadTimeOrDuration: typeOrFormat === "app" ? "Interactive Web App" : typeOrFormat === "research" ? "Research Study" : "4 min read",
+          suggestedReadTimeOrDuration: projectType || (typeOrFormat === "app" ? "Interactive App" : typeOrFormat === "film" ? "Short Film" : typeOrFormat === "magazine" ? "Print Edition" : typeOrFormat === "campaign" ? "Campaign" : "Featured Work"),
         },
       });
     }
 
     const prompt = `
-You are an expert editorial writer, journalism advisor, and professional portfolio copywriter for Ruchita Sahukari, a talented journalist, communications strategist, and researcher (PG Diploma in English Journalism from IIMC Dhenkanal).
+You are an expert executive editor, corporate communications strategist, and creative producer mentor for Ruchita Sahukari, a versatile professional specializing in journalism, corporate strategy, film/media production, fellowship initiatives, and multi-format publications.
 
-Task: Generate a polished, professional portfolio entry based on the user's input. Note that this can be a news byline/article, an interactive web app/tool (like Ethicly), an academic research paper, an in-depth Substack essay, a broadcast reel/PTC, a carousel report, or a communications campaign.
+Task: Generate a polished, high-impact professional portfolio entry based on the user's input. Note that this can be ANY type of work or creative project without artificial boundaries: corporate communications or brand strategy, a short film or documentary, a fellowship initiative, an editorial magazine or publication, an interactive digital tool, research study, news byline, Substack essay, broadcast reel, or public media campaign.
 
 Input Details:
 - Title / Headline: "${title || "Untitled"}"
-- Format / Type: "${typeOrFormat}" (e.g. article, app, research, case_study, essay, carousel, reel, campaign)
+- What is this work / Project Type: "${projectType || typeOrFormat || "Creative & Professional Work"}"
+- What Role Ruchita Played: "${rolePlayed || "Producer / Strategist / Lead"}"
+- Collaborators / Team: "${collaborators || "Collaborative Team / Independent"}"
+- Format / Media Medium: "${typeOrFormat}"
 - Category: "${category}"
-- Publication / Platform / Source: "${publicationOrPlatform || "Not specified"}"
+- Publication / Platform / Company / Client: "${publicationOrPlatform || "Not specified"}"
 - Link / URL: "${url || "Not specified"}"
-- Rough Notes / Pasted Copy / Excerpt: "${rawContentOrNotes || "None provided"}"
+- Rough Notes / Pasted Copy / Description: "${rawContentOrNotes || "None provided"}"
 - Tone: "${tone}"
 - Requested Action: "${action}"
 
 Requirements:
-1. "excerpt": A sharp, compelling 1-2 sentence lead summary (under 40 words) that captures the core essence, hook, and significance of the work.
-2. "fullDescription": A rich, structured 2-3 paragraph professional overview explaining the background, on-ground investigation or technical methodology, key questions explored, and societal/practical impact. Include formatting where helpful.
-3. "keyTakeaways": An array of exactly 4 concise, high-impact bullet points highlighting major revelations, methodological features, or user benefits.
-4. "tags": An array of 4 to 6 clean, camelCase or TitleCase topic tags (e.g., ["MediaEthics", "DigitalApp", "InvestigativeReporting"]).
-5. "suggestedReadTimeOrDuration": A short label representing format duration (e.g. "Interactive Web App", "5 min read", "12-page Report", "2 min watch").
+1. "excerpt": A sharp, compelling 1-2 sentence lead summary (under 45 words) that highlights what this project is, Ruchita's specific role (${rolePlayed || 'lead/producer'}), and the core significance of the work.
+2. "fullDescription": A rich, structured 2-3 paragraph professional overview explaining:
+   - Paragraph 1: What this work is, its overarching vision, and the organizational, corporate, fellowship, or creative context.
+   - Paragraph 2: Ruchita's specific role, responsibilities, and hands-on contributions (e.g. strategic planning, production coordination, direction, research, writing, or stakeholder management).
+   - Paragraph 3: Key outcomes, creative execution, audience or client impact, and the lasting value of the project.
+3. "keyTakeaways": An array of exactly 4 concise, high-impact bullet points highlighting key milestones, deliverables, teamwork leadership, or strategic outcomes.
+4. "tags": An array of 4 to 6 clean, camelCase or TitleCase topic tags reflecting the project type, role, and industry.
+5. "suggestedReadTimeOrDuration": A short label representing format or duration (e.g. "Corporate Campaign", "Short Film • 12 min", "Print Edition", "Interactive App", "5 min read").
 
-Write with precision, intellectual depth, and sophisticated tone. Avoid buzzwords like 'supercharge' or 'empower'.
+Write with precision, intellectual depth, and sophisticated tone. Avoid generic hype or buzzwords like 'supercharge' or 'empower'.
 `;
 
     const response = await ai.models.generateContent({
@@ -218,11 +231,11 @@ Write with precision, intellectual depth, and sophisticated tone. Avoid buzzword
           properties: {
             excerpt: {
               type: Type.STRING,
-              description: "A punchy 1-2 sentence lead summary",
+              description: "A punchy 1-2 sentence lead summary highlighting work and role",
             },
             fullDescription: {
               type: Type.STRING,
-              description: "Detailed 2-3 paragraph overview and background context",
+              description: "Detailed 2-3 paragraph overview covering context, role played, and outcomes",
             },
             keyTakeaways: {
               type: Type.ARRAY,
@@ -272,6 +285,9 @@ app.post("/api/ai/generate-work-summary", async (req, res) => {
     const {
       title,
       category = "journalism",
+      projectType = "",
+      rolePlayed = "",
+      collaborators = "",
       publicationOrPlatform,
       excerpt = "",
       fullDescription = "",
@@ -279,7 +295,7 @@ app.post("/api/ai/generate-work-summary", async (req, res) => {
       targetAudience = "recruiter_editor", // recruiter_editor, public_linkedin, academic_grant
     } = req.body;
 
-    if (!title && !excerpt && !fullDescription) {
+    if (!title && !excerpt && !fullDescription && !projectType) {
       return res.status(400).json({
         error: "Please provide work details to generate a work summary.",
       });
@@ -287,45 +303,53 @@ app.post("/api/ai/generate-work-summary", async (req, res) => {
 
     const ai = getGeminiClient();
     if (!ai) {
+      const displayWork = projectType || "creative and journalistic initiative";
+      const displayRole = rolePlayed ? `as ${rolePlayed}` : "as contributor and lead researcher";
+      const displayCollab = collaborators ? ` alongside ${collaborators}` : "";
+      const displayPub = publicationOrPlatform ? ` with ${publicationOrPlatform}` : "";
+
       // High-quality structured fallback
       return res.json({
         success: true,
         isFallback: true,
         data: {
-          executiveSummary: `"${title || "This work"}" demonstrates rigorous editorial investigation and strategic storytelling published via ${publicationOrPlatform || "media platforms"}. It combines grounded field reporting with clear analytical communication, delivering measurable awareness and actionable stakeholder insights.`,
-          elevatorPitch: `An in-depth ${category} initiative examining "${title || "core investigative questions"}", translating complex socio-ethical realities into accessible, high-impact public reporting.`,
-          linkedinPost: `Excited to share my work on "${title || "this initiative"}" published with ${publicationOrPlatform || "our editorial team"}!\n\n🔍 Key Focus: ${excerpt || "Delivering grounded, ethical storytelling on vital systemic issues."}\n\n💡 Read the complete analysis and findings in my portfolio: https://ruchita-portfolio.vercel.app\n\n#Journalism #MediaEthics #Storytelling #PublicInterest`,
+          executiveSummary: `"${title || "This work"}" is a ${displayWork}${displayPub}, produced with Ruchita Sahukari ${displayRole}${displayCollab}. It synthesizes structured research, editorial leadership, and impactful storytelling, delivering measurable public awareness and collaborative excellence.`,
+          elevatorPitch: `A ${displayWork} entitled "${title || "Core Initiative"}", where I served ${displayRole}${displayCollab} to translate critical ideas into accessible, high-impact public media.`,
+          linkedinPost: `Excited to share our work on "${title || "this project"}" (${displayWork}) ${displayPub}!\n\n🔍 Role & Scope: Served ${displayRole}${displayCollab} to deliver grounded storytelling and high-integrity production.\n\n💡 Read the complete overview and takeaways in my portfolio: https://ruchita-portfolio.vercel.app\n\n#${(projectType || "Storytelling").replace(/\s+/g, '')} #${(rolePlayed || "Producer").replace(/\s+/g, '')} #Journalism #MediaProduction`,
           keyImpactMetrics: [
-            "Conducted on-ground investigative interviews and field verification",
-            "Synthesized multi-source evidence into clear, verifiable reporting",
-            "Prioritized inclusive representation, accessibility, and ethical framing",
-            "Delivered actionable takeaways for readers, researchers, and community leaders"
+            `Served ${displayRole}${displayCollab} from inception to final delivery`,
+            "Synthesized multi-source evidence and creative direction into verifiable public media",
+            "Prioritized inclusive representation, ethical standards, and accessible design",
+            "Delivered actionable takeaways for readers, viewers, and community stakeholders"
           ],
-          recommendedBioSnippet: `Author of "${title || "investigative reports"}" (${publicationOrPlatform || "featured publication"}), focusing on social equity, accessibility, and transparent media communication.`
+          recommendedBioSnippet: `${rolePlayed || "Producer and Author"} of "${title || "featured works"}" (${publicationOrPlatform || displayWork}), specializing in high-impact collaborative storytelling.`
         }
       });
     }
 
     const prompt = `
-You are an expert editorial strategist and communications director for Ruchita Sahukari (PG Diploma in English Journalism from IIMC Dhenkanal).
+You are an expert executive communications advisor, creative producer mentor, and senior talent consultant representing Ruchita Sahukari.
 
-Task: Generate a comprehensive, multi-format professional Work Summary for the following portfolio entry:
+Task: Generate a comprehensive, multi-format professional Work Summary for the following portfolio entry (which can be a corporate strategy initiative, short film, fellowship project, editorial magazine, journalism investigation, or digital tool):
 
 Work Details:
 - Title: "${title || "Untitled"}"
+- What is this work / Project Type: "${projectType || "Creative / Professional Work"}"
+- What Role Ruchita Played: "${rolePlayed || "Producer / Strategist / Lead"}"
+- Collaborators / Team: "${collaborators || "Collaborative Team / Independent"}"
 - Category: "${category}"
-- Publication / Platform: "${publicationOrPlatform || "Not specified"}"
+- Publication / Platform / Company / Client: "${publicationOrPlatform || "Not specified"}"
 - Lead Excerpt: "${excerpt}"
 - Full Description: "${fullDescription}"
 - Key Takeaways: ${JSON.stringify(keyTakeaways)}
 - Target Audience: "${targetAudience}"
 
 Requirements:
-1. "executiveSummary": A powerful, cohesive paragraph (80-120 words) articulating the scope, investigative methodology, and lasting significance of this work for editors and hiring managers.
-2. "elevatorPitch": A sharp 2-sentence spoken pitch (under 40 words) that Ruchita could say in an interview or conference.
-3. "linkedinPost": A professional, engaging LinkedIn announcement (with clean line breaks, bullet points, and 3-5 relevant hashtags) sharing this work.
-4. "keyImpactMetrics": An array of exactly 4 impact bullet points highlighting research rigor, ethical integrity, audience resonance, and craft.
-5. "recommendedBioSnippet": A single 1-sentence byline/resume bullet summarizing this accomplishment.
+1. "executiveSummary": A powerful, cohesive paragraph (80-120 words) articulating what this work is, Ruchita's specific role (${rolePlayed || 'lead/producer'}), the collaborative or independent execution, and the lasting business, creative, or public significance for clients, recruiters, or production houses.
+2. "elevatorPitch": A sharp 2-sentence spoken pitch (under 45 words) highlighting the project and her role that Ruchita could say in an executive interview, film pitch meeting, or conference panel.
+3. "linkedinPost": A professional, engaging LinkedIn announcement (with clean line breaks, bullet points, and 3-5 relevant industry hashtags) sharing this work and highlighting the collaborative leadership.
+4. "keyImpactMetrics": An array of exactly 4 impact bullet points highlighting research/production rigor, teamwork coordination, audience or client resonance, and craft excellence.
+5. "recommendedBioSnippet": A single 1-sentence byline/resume bullet summarizing this accomplishment with her exact role and organization.
 
 Ensure high editorial polish, professional composure, and zero generic buzzwords.
 `;
@@ -340,7 +364,7 @@ Ensure high editorial polish, professional composure, and zero generic buzzwords
           properties: {
             executiveSummary: {
               type: Type.STRING,
-              description: "Executive paragraph summary",
+              description: "Executive paragraph summary highlighting project and role",
             },
             elevatorPitch: {
               type: Type.STRING,

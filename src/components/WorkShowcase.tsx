@@ -38,37 +38,75 @@ export const WorkShowcase: React.FC<WorkShowcaseProps> = ({
   onOpenAddModal
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFormat, setSelectedFormat] = useState<'all' | 'article' | 'reel' | 'carousel' | 'essay' | 'campaign' | 'app' | 'research' | 'case_study'>('all');
+  const [selectedFormat, setSelectedFormat] = useState<'all' | 'article' | 'film' | 'magazine' | 'reel' | 'carousel' | 'essay' | 'campaign' | 'app' | 'research' | 'case_study' | 'other'>('all');
 
   const categories = useMemo(() => {
-    const allCategories: { id: WorkCategory; label: string }[] = [
+    const defaultCategories: { id: WorkCategory; label: string }[] = [
       { id: 'all', label: 'All Works' },
-      { id: 'research', label: 'Research & Papers' },
+      { id: 'corporate', label: 'Corporate & Brand' },
+      { id: 'fellowship', label: 'Fellowships & Initiatives' },
+      { id: 'film_media', label: 'Film & Media' },
+      { id: 'publication', label: 'Publications & Magazines' },
       { id: 'journalism', label: 'Journalism & Bylines' },
-      { id: 'instagram', label: 'Instagram & Carousels' },
-      { id: 'substack', label: 'Substack In-Depth' },
-      { id: 'the_lit_scroll', label: 'The Lit Scroll (Academic)' },
+      { id: 'the_lit_scroll', label: 'The Lit Scroll' },
+      { id: 'research', label: 'Research & Papers' },
+      { id: 'instagram', label: 'Instagram & Visual' },
+      { id: 'substack', label: 'Substack Essays' },
       { id: 'apps', label: 'Apps & Tools' },
       { id: 'communications', label: 'Communications & PR' }
     ];
-    return allCategories.filter(cat => cat.id === 'all' || works.some(w => w.category === cat.id));
+
+    const presentCategoryIds = new Set<string>(works.map(w => w.category));
+    const result = defaultCategories.filter(cat => cat.id === 'all' || presentCategoryIds.has(cat.id));
+    
+    // Dynamically add any custom categories that user created
+    const knownIds = new Set<string>(defaultCategories.map(c => c.id));
+    for (const catId of Array.from(presentCategoryIds)) {
+      if (catId && !knownIds.has(catId)) {
+        const readableLabel = catId
+          .split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        result.push({ id: catId, label: readableLabel });
+      }
+    }
+    return result;
   }, [works]);
 
   const filteredWorks = useMemo(() => {
     return works.filter((item) => {
       const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
       const matchesFormat = selectedFormat === 'all' || item.format === selectedFormat;
+      const query = searchQuery.toLowerCase().trim();
       const matchesQuery = 
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.publicationOrPlatform.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        !query ||
+        item.title.toLowerCase().includes(query) ||
+        item.excerpt.toLowerCase().includes(query) ||
+        item.publicationOrPlatform.toLowerCase().includes(query) ||
+        (item.projectType && item.projectType.toLowerCase().includes(query)) ||
+        (item.rolePlayed && item.rolePlayed.toLowerCase().includes(query)) ||
+        (item.collaborators && item.collaborators.toLowerCase().includes(query)) ||
+        item.tags.some(tag => tag.toLowerCase().includes(query));
       return matchesCategory && matchesFormat && matchesQuery;
     });
   }, [works, activeCategory, selectedFormat, searchQuery]);
 
   const getFormatBadge = (format?: string) => {
     switch (format) {
+      case 'film':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-violet-950/80 text-violet-300 border border-violet-800/50 flex items-center gap-1">
+            <Play className="w-2.5 h-2.5 fill-violet-300" />
+            Film / Video
+          </span>
+        );
+      case 'magazine':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-950/80 text-amber-300 border border-amber-800/50 flex items-center gap-1">
+            <BookOpen className="w-2.5 h-2.5" />
+            Publication
+          </span>
+        );
       case 'app':
         return (
           <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-950/80 text-emerald-300 border border-emerald-800/50 flex items-center gap-1">
@@ -115,14 +153,21 @@ export const WorkShowcase: React.FC<WorkShowcaseProps> = ({
         return (
           <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-950/80 text-emerald-300 border border-emerald-800/50 flex items-center gap-1">
             <Sparkles className="w-2.5 h-2.5" />
-            Comms Campaign
+            Campaign
+          </span>
+        );
+      case 'project':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-950/80 text-amber-300 border border-amber-800/50 flex items-center gap-1">
+            <Sparkles className="w-2.5 h-2.5" />
+            Project
           </span>
         );
       default:
         return (
           <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-950/80 text-blue-300 border border-blue-800/50 flex items-center gap-1">
             <BookOpen className="w-2.5 h-2.5" />
-            Byline Article
+            Featured Work
           </span>
         );
     }
@@ -289,14 +334,23 @@ export const WorkShowcase: React.FC<WorkShowcaseProps> = ({
                   
                   <div>
                     {/* Publication & Date Bar */}
-                    <div className="flex items-center justify-between text-xs text-zinc-500 mb-2">
+                    <div className="flex items-center justify-between text-xs text-zinc-500 mb-1.5">
                       <span className="font-bold text-pink-600 uppercase tracking-wider text-[11px] truncate max-w-[70%]">
-                        {work.publicationOrPlatform}
+                        {work.projectType || work.publicationOrPlatform}
                       </span>
                       <span className="text-[11px] text-zinc-500 shrink-0">
                         {work.date}
                       </span>
                     </div>
+
+                    {/* Role / Team if specified */}
+                    {work.rolePlayed && (
+                      <div className="mb-2">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-pink-50 text-[10px] font-semibold text-pink-700 border border-pink-200/80 truncate max-w-full">
+                          Role: {work.rolePlayed}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Headline */}
                     <h3 

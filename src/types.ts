@@ -8,12 +8,13 @@ export type WorkCategory =
   | 'apps'
   | 'substack' 
   | 'instagram' 
-  | 'communications';
+  | 'communications'
+  | string;
 
 export interface WorkItem {
   id: string;
   title: string;
-  category: 'journalism' | 'the_lit_scroll' | 'research' | 'apps' | 'substack' | 'instagram' | 'communications';
+  category: string;
   publicationOrPlatform: string;
   url: string;
   date: string;
@@ -25,8 +26,12 @@ export interface WorkItem {
   isFeatured?: boolean;
   isPieceToCamera?: boolean;
   isAcademicProject?: boolean;
-  format?: 'article' | 'reel' | 'carousel' | 'essay' | 'campaign' | 'app' | 'research' | 'case_study';
+  format?: string;
   readTimeOrDuration?: string;
+  // Flexible creative & career attributes
+  projectType?: string; // What is this work (e.g., Academic Magazine, Short Film, Campus Journal, Podcast, Documentary)
+  rolePlayed?: string; // What role I played (e.g., Producer, Editor-in-Chief & Designer, Co-Director, Lead Reporter)
+  collaborators?: string; // Team or collaborators (e.g., Academic Student Team of 5, Independent Film Crew)
 }
 
 export interface ReviewItem {

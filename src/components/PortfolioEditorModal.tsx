@@ -82,7 +82,12 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
   const [isAddingWork, setIsAddingWork] = useState(false);
   const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
   const [workTitle, setWorkTitle] = useState('');
+  const [workProjectType, setWorkProjectType] = useState('');
+  const [workRolePlayed, setWorkRolePlayed] = useState('');
+  const [workCollaborators, setWorkCollaborators] = useState('');
   const [workCategory, setWorkCategory] = useState<WorkItem['category']>('journalism');
+  const [customCategory, setCustomCategory] = useState('');
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [workPlatform, setWorkPlatform] = useState('');
   const [workUrl, setWorkUrl] = useState('');
   const [workDate, setWorkDate] = useState('');
@@ -137,10 +142,74 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
     setTimeout(() => setSaveNotification(null), 3500);
   };
 
-  // Apply preset values based on selected category (Research, Instagram, Substack, Byline, etc.)
+  // Apply preset values based on selected category (Corporate, Fellowship, Film, Magazine, Byline, Research, etc.)
   const applyCategoryPreset = (category: WorkItem['category'], isNewForm: boolean = false) => {
     setWorkCategory(category);
     switch (category) {
+      case 'corporate':
+        setWorkFormat('campaign');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform('Corporate Client / Organization');
+        }
+        if (isNewForm || !workDuration) setWorkDuration('Campaign Deliverable');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('CorporateStrategy, BrandNarrative, Communications, StakeholderEngagement');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('Brand positioning & multi-stakeholder communication\nStrategic messaging and public reputation management\nData-backed campaign outcomes and corporate deliverables');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
+      case 'fellowship':
+        setWorkFormat('project');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform('Fellowship Foundation / Residency');
+        }
+        if (isNewForm || !workDuration) setWorkDuration('Fellowship Initiative');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('Fellowship, PublicInitiative, CommunityImpact, Leadership');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('Fellowship-backed research and independent execution\nCross-disciplinary collaboration and community engagement\nSustained public impact and verifiable deliverables');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
+      case 'film_media':
+        setWorkFormat('film');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform('Film Production / Studio');
+        }
+        if (isNewForm || !workDuration) setWorkDuration('Short Film');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('FilmProduction, Documentary, Cinematography, Direction');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('Scriptwriting, production coordination, and visual direction\nCinematography, sound design, and post-production oversight\nNarrative impact and festival/community screenings');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
+      case 'publication':
+        setWorkFormat('magazine');
+        if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
+          setWorkPlatform('Editorial Magazine / Publication');
+        }
+        if (isNewForm || !workDuration) setWorkDuration('Print Edition');
+        if (isNewForm || !workTags || workTags === 'Journalism, Investigation, MediaEthics') {
+          setWorkTags('EditorialDesign, PrintMagazine, InDesign, LayoutDirection');
+        }
+        if (isNewForm || !workTakeaways || workTakeaways.includes('Rigorous on-ground reporting')) {
+          setWorkTakeaways('Complete magazine production from editorial theme to print layout\nCross-team commissioning, editing, and typography curation\nHigh-production-value publication distributed to readership');
+        }
+        if (isNewForm || !workImage || workImage.includes('photo-1585829365295')) {
+          setWorkImage('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=900&auto=format&fit=crop');
+        }
+        break;
       case 'research':
         setWorkFormat('research');
         if (isNewForm || !workPlatform || workPlatform === 'The Hans India') {
@@ -258,6 +327,9 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
     setIsAddingWork(true);
     setEditingWorkId(null);
     setWorkTitle('');
+    setWorkProjectType('');
+    setWorkRolePlayed('');
+    setWorkCollaborators('');
     setWorkUrl('');
     setWorkDate(new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
     setWorkExcerpt('');
@@ -266,6 +338,9 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
     setAiRawContext('');
     setAiError(null);
     setAiSuccessMessage(null);
+    setWorkSummaryData(null);
+    setCustomCategory('');
+    setIsCustomCategory(false);
 
     const targetCategory = categoryPreset || 'journalism';
     applyCategoryPreset(targetCategory, true);
@@ -275,6 +350,9 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
     setIsAddingWork(false);
     setEditingWorkId(work.id);
     setWorkTitle(work.title);
+    setWorkProjectType(work.projectType || '');
+    setWorkRolePlayed(work.rolePlayed || '');
+    setWorkCollaborators(work.collaborators || '');
     setWorkCategory(work.category);
     setWorkPlatform(work.publicationOrPlatform);
     setWorkUrl(work.url);
@@ -290,6 +368,28 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
     setAiRawContext('');
     setAiError(null);
     setAiSuccessMessage(null);
+    setWorkSummaryData(null);
+
+    const standardCategories = [
+      'journalism',
+      'corporate',
+      'fellowship',
+      'film_media',
+      'publication',
+      'the_lit_scroll',
+      'research',
+      'apps',
+      'substack',
+      'instagram',
+      'communications'
+    ];
+    if (work.category && !standardCategories.includes(work.category)) {
+      setIsCustomCategory(true);
+      setCustomCategory(work.category);
+    } else {
+      setIsCustomCategory(false);
+      setCustomCategory('');
+    }
   };
 
   const handleCancelWorkForm = () => {
@@ -350,20 +450,27 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
       .map(t => t.replace(/^[•\-*]\s*/, '').trim())
       .filter(Boolean);
 
+    const effectiveCategory = isCustomCategory && customCategory.trim()
+      ? customCategory.trim().toLowerCase().replace(/\s+/g, '_')
+      : workCategory;
+
     const workData: WorkItem = {
       id: editingWorkId || `work-${Date.now()}`,
       title: workTitle.trim(),
-      category: workCategory,
-      publicationOrPlatform: workPlatform.trim() || 'Journalism Desk',
+      category: effectiveCategory,
+      projectType: workProjectType.trim() || undefined,
+      rolePlayed: workRolePlayed.trim() || undefined,
+      collaborators: workCollaborators.trim() || undefined,
+      publicationOrPlatform: workPlatform.trim() || (workProjectType ? `${workProjectType} Desk` : 'Creative Portfolio'),
       url: workUrl.trim() || '#',
       date: workDate.trim() || '2026',
       excerpt: workExcerpt.trim() || workTitle,
       fullDescription: workDescription.trim(),
       imageUrl: workImage.trim() || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=800&auto=format&fit=crop',
-      tags: tagsArray.length > 0 ? tagsArray : ['Journalism'],
+      tags: tagsArray.length > 0 ? tagsArray : [workProjectType || 'PortfolioWork', 'CreativeStorytelling'],
       keyTakeaways: takeawaysArray.length > 0 ? takeawaysArray : undefined,
       format: workFormat,
-      readTimeOrDuration: workDuration.trim() || '4 min read',
+      readTimeOrDuration: workDuration.trim() || (workProjectType ? workProjectType : 'Featured Work'),
       isFeatured: workFeatured
     };
 
@@ -386,8 +493,8 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
 
   // AI Generation inside Work Form
   const handleGenerateAIWorkDetails = async () => {
-    if (!workTitle.trim() && !aiRawContext.trim() && !workUrl.trim()) {
-      setAiError('Please provide a title, url, or rough draft notes to generate copy.');
+    if (!workTitle.trim() && !workProjectType.trim() && !workRolePlayed.trim() && !aiRawContext.trim() && !workUrl.trim()) {
+      setAiError('Please provide what the work is, your role, a title, or draft notes to generate copy.');
       return;
     }
 
@@ -396,14 +503,21 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
     setAiSuccessMessage(null);
 
     try {
+      const effectiveCategory = isCustomCategory && customCategory.trim()
+        ? customCategory.trim().toLowerCase().replace(/\s+/g, '_')
+        : workCategory;
+
       const res = await fetch('/api/ai/generate-portfolio-entry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: workTitle,
+          title: workTitle || workProjectType,
           url: workUrl,
           typeOrFormat: workFormat,
-          category: workCategory,
+          category: effectiveCategory,
+          projectType: workProjectType,
+          rolePlayed: workRolePlayed,
+          collaborators: workCollaborators,
           publicationOrPlatform: workPlatform,
           rawContentOrNotes: aiRawContext,
           tone: aiTone,
@@ -435,8 +549,8 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
 
   // AI Create Work Summary (Calls /api/ai/generate-work-summary)
   const handleCreateAIWorkSummary = async () => {
-    if (!workTitle.trim() && !aiRawContext.trim() && !workUrl.trim() && !workExcerpt.trim()) {
-      setAiError('Please enter a title, URL, or draft notes to generate an executive work summary.');
+    if (!workTitle.trim() && !workProjectType.trim() && !workRolePlayed.trim() && !aiRawContext.trim() && !workUrl.trim() && !workExcerpt.trim()) {
+      setAiError('Please enter what this work is, your role, title, or draft notes to generate an executive work summary.');
       return;
     }
 
@@ -445,16 +559,59 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
     setAiSuccessMessage(null);
 
     try {
+      const effectiveCategory = isCustomCategory && customCategory.trim()
+        ? customCategory.trim().toLowerCase().replace(/\s+/g, '_')
+        : workCategory;
+
+      // 1. Generate portfolio entry fields if empty
+      const resEntry = await fetch('/api/ai/generate-portfolio-entry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: workTitle || workProjectType || 'Creative Work',
+          url: workUrl,
+          typeOrFormat: workFormat,
+          category: effectiveCategory,
+          projectType: workProjectType,
+          rolePlayed: workRolePlayed,
+          collaborators: workCollaborators,
+          publicationOrPlatform: workPlatform,
+          rawContentOrNotes: aiRawContext || workDescription,
+          tone: aiTone,
+          action: 'generate_all'
+        })
+      });
+
+      const entryJson = await resEntry.json();
+      if (entryJson.data) {
+        const { excerpt, fullDescription, keyTakeaways, tags, suggestedReadTimeOrDuration } = entryJson.data;
+        if (excerpt && !workExcerpt) setWorkExcerpt(excerpt);
+        if (fullDescription && !workDescription) setWorkDescription(fullDescription);
+        if (Array.isArray(keyTakeaways) && keyTakeaways.length > 0 && !workTakeaways) {
+          setWorkTakeaways(keyTakeaways.join('\n'));
+        }
+        if (Array.isArray(tags) && tags.length > 0 && !workTags) {
+          setWorkTags(tags.join(', '));
+        }
+        if (suggestedReadTimeOrDuration && (!workDuration || workDuration === '4 min read')) {
+          setWorkDuration(suggestedReadTimeOrDuration);
+        }
+      }
+
+      // 2. Generate executive work summary & recruiter pitch
       const res = await fetch('/api/ai/generate-work-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: workTitle || 'Journalistic & Media Dispatch',
-          category: workCategory,
+          title: workTitle || workProjectType || 'Creative Work',
+          category: effectiveCategory,
+          projectType: workProjectType,
+          rolePlayed: workRolePlayed,
+          collaborators: workCollaborators,
           publicationOrPlatform: workPlatform,
-          excerpt: workExcerpt,
-          fullDescription: workDescription || aiRawContext,
-          keyTakeaways: workTakeaways ? workTakeaways.split('\n').filter(Boolean) : [],
+          excerpt: entryJson.data?.excerpt || workExcerpt,
+          fullDescription: entryJson.data?.fullDescription || workDescription || aiRawContext,
+          keyTakeaways: entryJson.data?.keyTakeaways || (workTakeaways ? workTakeaways.split('\n').filter(Boolean) : []),
           targetAudience: summaryAudience
         })
       });
@@ -466,7 +623,7 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
 
       if (json.data) {
         setWorkSummaryData(json.data);
-        setAiSuccessMessage('✨ AI Work Summary created! Click "Apply to Form" below to populate your description and excerpt.');
+        setAiSuccessMessage('✨ AI studied your work and role details! Click "Apply to Form" below to populate your fields.');
       }
     } catch (err: any) {
       console.error('AI Work Summary error:', err);
@@ -759,11 +916,16 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                             }}
                           />
                           <div className="space-y-1 flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center flex-wrap gap-1.5">
                               <span className="font-mono text-[10px] uppercase font-bold text-[#d9823e] px-2 py-0.5 rounded bg-[#d9823e]/10 border border-[#d9823e]/20">
-                                {work.category}
+                                {work.projectType || work.category}
                               </span>
-                              <span className="text-[11px] text-zinc-400 truncate">
+                              {work.rolePlayed && (
+                                <span className="text-[10px] text-pink-300 font-medium truncate max-w-[140px]">
+                                  • {work.rolePlayed}
+                                </span>
+                              )}
+                              <span className="text-[11px] text-zinc-400 truncate max-w-[150px]">
                                 {work.publicationOrPlatform}
                               </span>
                             </div>
@@ -807,10 +969,10 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <div>
                       <h3 className="font-serif text-lg font-bold text-white">
-                        {isAddingWork ? 'Add New Project / Work / Research' : 'Edit Portfolio Project'}
+                        {isAddingWork ? 'Add New Work / Project' : 'Edit Work / Project'}
                       </h3>
                       <p className="text-zinc-400 text-xs mt-0.5">
-                        Add or edit research papers, Instagram carousels/reels, Substack essays, news bylines, or web tools.
+                        Add any project, corporate work, fellowship initiative, film, publication, or independent production.
                       </p>
                     </div>
                     <button
@@ -983,119 +1145,229 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                     )}
                   </div>
 
-                  {/* Quick Category / Project Type Selector */}
-                  <div className="space-y-2.5 p-3.5 rounded-2xl bg-zinc-950/70 border border-white/10">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                      <label className="text-zinc-200 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  {/* Project Details */}
+                  <div className="p-4 rounded-2xl bg-zinc-950/80 border border-white/10 space-y-4">
+                    <div className="border-b border-white/10 pb-2.5">
+                      <h4 className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#d9823e]" />
-                        <span>Work / Project Medium (Tap to auto-fill format & defaults)</span>
-                      </label>
-                      <span className="text-[10px] text-zinc-400">Supports research papers, Instagram, Substack, bylines & tools</span>
+                        <span>Project Details</span>
+                      </h4>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-                      {[
-                        { id: 'research', label: 'Research Paper', icon: '🔬', desc: 'Academic & Policy' },
-                        { id: 'instagram', label: 'Instagram', icon: '📸', desc: 'Carousel / Reel / Post' },
-                        { id: 'substack', label: 'Substack', icon: '✍️', desc: 'In-Depth Essay' },
-                        { id: 'journalism', label: 'News Byline', icon: '📰', desc: 'Press / The Hans India' },
-                        { id: 'the_lit_scroll', label: 'The Lit Scroll', icon: '🎓', desc: 'Academic Project / PTC' },
-                        { id: 'apps', label: 'Web Tool / App', icon: '💻', desc: 'e.g. Ethicly' },
-                        { id: 'communications', label: 'Comms & PR', icon: '📢', desc: 'Corporate / Strategy' },
-                      ].map((preset) => {
-                        const isSelected = workCategory === preset.id;
-                        return (
-                          <button
-                            key={preset.id}
-                            type="button"
-                            onClick={() => applyCategoryPreset(preset.id as any)}
-                            className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
-                              isSelected
-                                ? 'bg-[#d9823e]/20 border-[#d9823e] text-white shadow-md shadow-[#d9823e]/20 ring-1 ring-[#d9823e]'
-                                : 'bg-zinc-900/90 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/25 hover:bg-zinc-800/80'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-base">{preset.icon}</span>
-                              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#d9823e]" />}
-                            </div>
-                            <div className="font-bold text-[11px] text-white leading-tight truncate">{preset.label}</div>
-                            <div className="text-[9px] text-zinc-400 truncate mt-0.5">{preset.desc}</div>
-                          </button>
-                        );
-                      })}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Project / Work Type */}
+                      <div className="space-y-1.5">
+                        <label className="block text-zinc-200 font-semibold text-xs">
+                          Project / Work Type *
+                        </label>
+                        <input
+                          type="text"
+                          value={workProjectType}
+                          onChange={(e) => {
+                            setWorkProjectType(e.target.value);
+                            if (!workPlatform && e.target.value) {
+                              setWorkPlatform(e.target.value);
+                            }
+                          }}
+                          placeholder="e.g. Corporate Campaign, Film Production, Fellowship Project, Magazine, Brand Strategy"
+                          className="w-full bg-zinc-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none text-xs"
+                        />
+                        {/* Quick suggestions */}
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                          <span className="text-[10px] text-zinc-500">Suggestions:</span>
+                          {[
+                            { label: 'Corporate Campaign', icon: '🏢', cat: 'corporate', format: 'campaign' },
+                            { label: 'Film / Docu', icon: '🎬', cat: 'film_media', format: 'film' },
+                            { label: 'Fellowship Project', icon: '🌟', cat: 'fellowship', format: 'project' },
+                            { label: 'Magazine / Publication', icon: '📖', cat: 'publication', format: 'magazine' },
+                            { label: 'Journalism / Byline', icon: '📰', cat: 'journalism', format: 'article' },
+                            { label: 'Brand Strategy / PR', icon: '📢', cat: 'corporate', format: 'case_study' },
+                            { label: 'Research Study', icon: '🔬', cat: 'research', format: 'research' },
+                            { label: 'Digital Tool / App', icon: '💻', cat: 'apps', format: 'app' }
+                          ].map((sugg) => (
+                            <button
+                              key={sugg.label}
+                              type="button"
+                              onClick={() => {
+                                setWorkProjectType(sugg.label);
+                                setWorkFormat(sugg.format as any);
+                                if (sugg.cat) applyCategoryPreset(sugg.cat as any);
+                                if (!workPlatform) setWorkPlatform(sugg.label);
+                                if (!workDuration) {
+                                  if (sugg.format === 'film') setWorkDuration('Short Film');
+                                  else if (sugg.format === 'magazine') setWorkDuration('Print Issue');
+                                  else if (sugg.format === 'campaign') setWorkDuration('Campaign Deliverable');
+                                  else if (sugg.format === 'project') setWorkDuration('Fellowship Project');
+                                }
+                              }}
+                              className="px-2 py-0.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white text-[10px] transition-colors cursor-pointer"
+                            >
+                              <span>{sugg.icon} {sugg.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Your Role */}
+                      <div className="space-y-1.5">
+                        <label className="block text-zinc-200 font-semibold text-xs">
+                          Your Role *
+                        </label>
+                        <input
+                          type="text"
+                          value={workRolePlayed}
+                          onChange={(e) => setWorkRolePlayed(e.target.value)}
+                          placeholder="e.g. Producer, Corporate Comms Lead, Editor-in-Chief, Brand Strategist, Director"
+                          className="w-full bg-zinc-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none text-xs"
+                        />
+                        {/* Role suggestions */}
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                          <span className="text-[10px] text-zinc-500">Examples:</span>
+                          {[
+                            'Producer',
+                            'Corporate Comms Lead',
+                            'Creative Director',
+                            'Editor-in-Chief',
+                            'Brand Strategist',
+                            'Fellow / Project Lead',
+                            'Film Director',
+                            'Writer & Researcher'
+                          ].map((role) => (
+                            <button
+                              key={role}
+                              type="button"
+                              onClick={() => setWorkRolePlayed(role)}
+                              className="px-2 py-0.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white text-[10px] transition-colors cursor-pointer"
+                            >
+                              {role}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Company / Organization & Collaborators */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                      <div>
+                        <label className="block text-zinc-300 font-semibold text-xs mb-1">
+                          Company / Organization / Publication / Fellowship *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={workPlatform}
+                          onChange={(e) => setWorkPlatform(e.target.value)}
+                          placeholder="e.g. Corporate Client, Fellowship Org, Studio, Media House, Agency"
+                          className="w-full bg-zinc-900 border border-white/10 rounded-xl px-3.5 py-2 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-zinc-300 font-semibold text-xs mb-1">
+                          Team / Collaborators (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={workCollaborators}
+                          onChange={(e) => setWorkCollaborators(e.target.value)}
+                          placeholder="e.g. Fellowship Cohort, In-house Marketing Team, Film Crew, Co-creators"
+                          className="w-full bg-zinc-900 border border-white/10 rounded-xl px-3.5 py-2 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none text-xs"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Basic Info: Title & Platform */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-zinc-300 font-bold uppercase tracking-wider mb-1">
-                        Title / Headline *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={workTitle}
-                        onChange={(e) => setWorkTitle(e.target.value)}
-                        placeholder="e.g. Universal Accessibility & Public Infrastructure Audit"
-                        className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-zinc-300 font-bold uppercase tracking-wider mb-1">
-                        Publication / Platform / Desk *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={workPlatform}
-                        onChange={(e) => setWorkPlatform(e.target.value)}
-                        placeholder="e.g. IIMC Academic Research / Instagram / Substack / The Hans India"
-                        className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none"
-                      />
-                    </div>
+                  {/* Title / Project Name */}
+                  <div>
+                    <label className="block text-zinc-300 font-semibold text-xs mb-1">
+                      Title / Project Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={workTitle}
+                      onChange={(e) => setWorkTitle(e.target.value)}
+                      placeholder="e.g. Q3 Brand Positioning Campaign, Chronicles of Campus Issue 01, Short Documentary"
+                      className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none"
+                    />
                   </div>
 
                   {/* Category, Format & Date */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-zinc-300 font-bold uppercase tracking-wider mb-1">
-                        Category Section *
-                      </label>
-                      <select
-                        value={workCategory}
-                        onChange={(e) => applyCategoryPreset(e.target.value as any)}
-                        className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:border-[#d9823e] focus:outline-none"
-                      >
-                        <option value="research">🔬 Academic & Field Research Paper / Study</option>
-                        <option value="instagram">📸 Instagram Content (Carousels, Reels, Visual Reports)</option>
-                        <option value="substack">✍️ Substack Long-form, Newsletter & Deep-dive Essay</option>
-                        <option value="journalism">📰 Journalism & National News Byline (The Hans India, etc.)</option>
-                        <option value="the_lit_scroll">🎓 Academic Project & Collaboration (The Lit Scroll, IIMC)</option>
-                        <option value="apps">💻 Interactive Web App & Digital Media Tool (e.g. Ethicly)</option>
-                        <option value="communications">📢 Corporate Communications, PR & Brand Strategy</option>
-                      </select>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-zinc-300 font-bold uppercase tracking-wider text-[11px]">
+                          Category Section *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setIsCustomCategory(!isCustomCategory)}
+                          className="text-[10px] text-[#d9823e] hover:underline font-semibold cursor-pointer"
+                        >
+                          {isCustomCategory ? 'Use Standard List' : '+ Custom Category'}
+                        </button>
+                      </div>
+
+                      {isCustomCategory ? (
+                        <div className="space-y-1">
+                          <input
+                            type="text"
+                            value={customCategory}
+                            onChange={(e) => setCustomCategory(e.target.value)}
+                            placeholder="Type any custom category (e.g. film_production, corporate_strategy)"
+                            className="w-full bg-zinc-950 border border-[#d9823e] rounded-xl px-3.5 py-2 text-white placeholder-zinc-500 focus:outline-none text-xs"
+                          />
+                          <p className="text-[10px] text-zinc-400">Creates a new filterable section in your portfolio</p>
+                        </div>
+                      ) : (
+                        <select
+                          value={workCategory}
+                          onChange={(e) => {
+                            if (e.target.value === '__custom__') {
+                              setIsCustomCategory(true);
+                            } else {
+                              applyCategoryPreset(e.target.value as any);
+                            }
+                          }}
+                          className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:border-[#d9823e] focus:outline-none text-xs"
+                        >
+                          <option value="corporate">🏢 Corporate, Brand Strategy & Client Work</option>
+                          <option value="fellowship">🌟 Fellowship, Grants & Residencies</option>
+                          <option value="film_media">🎬 Film, Video & Documentary Production</option>
+                          <option value="publication">📖 Magazines & Print Publications</option>
+                          <option value="journalism">📰 Journalism & Press Bylines</option>
+                          <option value="the_lit_scroll">🎓 The Lit Scroll & Creative Initiatives</option>
+                          <option value="research">🔬 Research Papers & Policy Studies</option>
+                          <option value="apps">💻 Interactive Web Apps & Digital Tools</option>
+                          <option value="substack">✍️ Substack & Long-form Essays</option>
+                          <option value="instagram">📸 Visual Media & Social Campaigns</option>
+                          <option value="communications">📢 Communications & PR</option>
+                          <option value="__custom__">✨ + Create Custom Category...</option>
+                        </select>
+                      )}
                     </div>
 
                     <div>
-                      <label className="block text-zinc-300 font-bold uppercase tracking-wider mb-1">
+                      <label className="block text-zinc-300 font-bold uppercase tracking-wider mb-1 text-[11px]">
                         Media Format *
                       </label>
                       <select
                         value={workFormat}
                         onChange={(e) => setWorkFormat(e.target.value as any)}
-                        className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:border-[#d9823e] focus:outline-none"
+                        className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:border-[#d9823e] focus:outline-none text-xs"
                       >
-                        <option value="research">Academic / Field Research Paper</option>
-                        <option value="carousel">Social Media Carousel / Visual Slide Deck</option>
-                        <option value="reel">Video Broadcast / Piece to Camera (PTC) Reel</option>
-                        <option value="essay">Long-form Essay / Substack Newsletter</option>
-                        <option value="article">Print / Digital News Article Byline</option>
-                        <option value="app">Interactive Web Application / Digital Tool</option>
-                        <option value="case_study">Communications Case Study / Policy Brief</option>
-                        <option value="campaign">Public Advocacy & Media Campaign</option>
+                        <option value="campaign">Corporate Campaign / Brand Strategy</option>
+                        <option value="film">Film / Video / Documentary</option>
+                        <option value="magazine">Magazine / Editorial Publication</option>
+                        <option value="project">Fellowship Project / Creative Initiative</option>
+                        <option value="case_study">Case Study / Client Deliverable</option>
+                        <option value="article">Article / Journalism Byline / Report</option>
+                        <option value="research">Research Paper / Study</option>
+                        <option value="app">Web Application / Digital Tool</option>
+                        <option value="carousel">Visual Slide Deck / Social Content</option>
+                        <option value="reel">Video Broadcast / Reel / PTC</option>
+                        <option value="essay">Long-form Essay / Newsletter</option>
+                        <option value="other">Other Work / Production</option>
                       </select>
                     </div>
 
@@ -1125,14 +1397,14 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                   {/* URLs & Cover Image Upload */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-zinc-300 font-bold uppercase tracking-wider mb-1">
-                        Live Story / Publication Link
+                      <label className="block text-zinc-300 font-semibold text-xs mb-1">
+                        Live Link / Deliverable URL (Optional)
                       </label>
                       <input
                         type="url"
                         value={workUrl}
                         onChange={(e) => setWorkUrl(e.target.value)}
-                        placeholder="https://thehansindia.com/..."
+                        placeholder="https://... (Company site, Drive PDF, Substack, YouTube, Vimeo, Publication)"
                         className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:border-[#d9823e] focus:outline-none font-mono text-xs"
                       />
                     </div>
