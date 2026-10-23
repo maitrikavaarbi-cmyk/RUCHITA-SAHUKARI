@@ -36,8 +36,8 @@ export const UnlockEditorModal: React.FC<UnlockEditorModalProps> = ({
       setErrorMsg('Please enter your owner password to continue.');
       return;
     }
-    // Set to user's specified secure password "Vaarbi@12"
-    if (trimmed !== 'Vaarbi@12' && trimmed.toLowerCase() !== 'vaarbi@12') {
+    // Set to user's specified secure password "Vaarbi@3468"
+    if (trimmed !== 'Vaarbi@3468' && trimmed.toLowerCase() !== 'vaarbi@3468') {
       setErrorMsg('Incorrect password. Access is restricted to the portfolio owner.');
       return;
     }

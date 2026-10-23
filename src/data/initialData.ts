@@ -56,7 +56,7 @@ export const INITIAL_USER_PROFILE: UserProfile = {
       period: "2025 – 2026",
       role: "PG Diploma in English Journalism",
       organization: "Indian Institute of Mass Communication (IIMC Dhenkanal)",
-      description: "Intensive training in print & digital journalism, news editing, Peace to Camera (PTC), broadcast reporting, media ethics, and developmental journalism. Spearheaded The Lit Scroll digital news project and developed 'Ethicly' (an interactive web application for journalism ethics mentoring, grammatical correction, and news copy enhancement).",
+      description: "Intensive training in print & digital journalism, news editing, Peace to Camera (PTC), broadcast reporting, media ethics, and developmental journalism. Spearheaded The Lit Scroll digital news project, and developed 'Ethicly' (an interactive web application for journalism ethics mentoring, grammatical correction, and news copy enhancement).",
       highlight: true
     },
     {

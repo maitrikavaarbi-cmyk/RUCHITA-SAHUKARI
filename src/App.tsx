@@ -31,8 +31,8 @@ import { Footer } from './components/Footer';
 import { CheckCircle2, Sparkles, Camera, Briefcase, Eye, Key, ArrowLeft, Globe, Loader2 } from 'lucide-react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 
-const STORAGE_KEY_PROFILE = 'ruchita_portfolio_profile_v10';
-const STORAGE_KEY_WORKS = 'ruchita_portfolio_works_v12';
+const STORAGE_KEY_PROFILE = 'ruchita_portfolio_profile_v11';
+const STORAGE_KEY_WORKS = 'ruchita_portfolio_works_v13';
 const STORAGE_KEY_REVIEWS = 'ruchita_portfolio_reviews_v2';
 const SESSION_KEY_ADMIN = 'ruchita_admin_unlocked';
 const LOCAL_STORAGE_KEY_ADMIN = 'ruchita_owner_unlocked_v1';
@@ -75,7 +75,16 @@ function PortfolioAppContent() {
   const [profile, setProfile] = useState<UserProfile>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PROFILE);
-      return saved ? JSON.parse(saved) : INITIAL_USER_PROFILE;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.experience)) {
+          parsed.experience = parsed.experience.filter(
+            (e: any) => !(e.role && e.role.includes('The Eastern Lens'))
+          );
+        }
+        return parsed;
+      }
+      return INITIAL_USER_PROFILE;
     } catch {
       return INITIAL_USER_PROFILE;
     }
@@ -87,10 +96,13 @@ function PortfolioAppContent() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          return parsed.filter(
+          const filtered = parsed.filter(
             w => w.id !== 'research-accessibility-audit' && 
+                 w.id !== 'the-eastern-lens-magazine' &&
+                 !(w.title && w.title.toLowerCase().includes('eastern lens')) &&
                  !(w.title && w.title.toLowerCase().includes('universal accessibility') && w.title.toLowerCase().includes('barrier-free'))
           );
+          return filtered;
         }
       }
       return INITIAL_WORKS;
@@ -154,11 +166,19 @@ function PortfolioAppContent() {
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data) {
-            const isUnwantedResearch = (w: WorkItem) =>
+            const isUnwanted = (w: WorkItem) =>
               w.id === 'research-accessibility-audit' ||
+              w.id === 'the-eastern-lens-magazine' ||
+              Boolean(w.title && w.title.toLowerCase().includes('eastern lens')) ||
               Boolean(w.title && w.title.toLowerCase().includes('universal accessibility') && w.title.toLowerCase().includes('barrier-free'));
 
-            const serverWorks: WorkItem[] = (Array.isArray(json.data.works) ? json.data.works : []).filter(w => !isUnwantedResearch(w));
+            const serverWorks: WorkItem[] = (Array.isArray(json.data.works) ? json.data.works : []).filter(w => !isUnwanted(w));
+
+            if (json.data.profile && Array.isArray(json.data.profile.experience)) {
+              json.data.profile.experience = json.data.profile.experience.filter(
+                (e: any) => !(e.role && e.role.includes('The Eastern Lens'))
+              );
+            }
             
             // Check if this PC's local storage contains works that are not yet on the server
             let localWorks: WorkItem[] = [];
@@ -167,7 +187,7 @@ function PortfolioAppContent() {
               if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) {
-                  localWorks = parsed.filter(w => !isUnwantedResearch(w));
+                  localWorks = parsed.filter(w => !isUnwanted(w));
                   localStorage.setItem(STORAGE_KEY_WORKS, JSON.stringify(localWorks));
                 }
               }

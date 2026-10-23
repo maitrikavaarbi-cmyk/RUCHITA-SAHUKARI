@@ -15,7 +15,8 @@ import {
   Laptop,
   Pencil,
   Crop,
-  Plus
+  Plus,
+  BookOpen
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -158,7 +159,7 @@ export const AboutExperienceSection: React.FC<AboutExperienceSectionProps> = ({
                         {exp.description}
                       </p>
 
-                      {exp.highlight && (
+                      {exp.role.includes('PG Diploma') && (
                         <div className="pt-2 flex flex-wrap items-center gap-2">
                           <a
                             id="timeline-ethicly-link"

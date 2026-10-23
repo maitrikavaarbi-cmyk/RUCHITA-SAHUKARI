@@ -39,7 +39,7 @@ export const JournalismSection: React.FC<JournalismSectionProps> = ({
               The Hans India & National Reporting
             </h2>
             <p className="text-sm sm:text-base text-zinc-600 mt-2 max-w-2xl font-sans">
-              Investigative dispatches and on-ground civic reporting covering public administration, healthcare campaigns, and grassroots governance.
+              On-ground reporting and published bylines for leading national news dailies covering civic governance, administrative affairs, and public welfare.
             </p>
           </div>
 
@@ -56,7 +56,7 @@ export const JournalismSection: React.FC<JournalismSectionProps> = ({
               </button>
             )}
             <span className="px-3 py-1.5 rounded-xl bg-white border border-pink-200 text-xs text-zinc-800 shadow-sm font-semibold">
-              Verified Byline Archive ({journalismWorks.length})
+              Verified Works ({journalismWorks.length})
             </span>
           </div>
         </div>
@@ -83,13 +83,19 @@ export const JournalismSection: React.FC<JournalismSectionProps> = ({
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                   
                   {/* Masthead Tag */}
-                  <div className="absolute top-4 left-4 flex items-center gap-2">
+                  <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2">
                     <span className="px-3 py-1 rounded-lg bg-gradient-to-r from-pink-500 to-rose-400 text-white text-xs font-bold uppercase tracking-wider shadow-md">
                       {work.publicationOrPlatform}
                     </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-sm border border-pink-200 text-[10px] font-bold text-pink-900 uppercase">
-                      Byline Dispatch
-                    </span>
+                    {work.rolePlayed ? (
+                      <span className="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-sm border border-pink-200 text-[10px] font-bold text-pink-700 uppercase shadow-sm">
+                        {work.rolePlayed}
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-sm border border-pink-200 text-[10px] font-bold text-pink-900 uppercase">
+                        Byline Dispatch
+                      </span>
+                    )}
                   </div>
 
                   {/* Quick Preview Badge */}
@@ -163,7 +169,11 @@ export const JournalismSection: React.FC<JournalismSectionProps> = ({
                   rel="noopener noreferrer"
                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-pink-500/20 group/btn"
                 >
-                  <span>Open on The Hans India</span>
+                  <span>
+                    {work.publicationOrPlatform.includes('Hans')
+                      ? 'Open on The Hans India'
+                      : 'Open Publication'}
+                  </span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                 </a>
 

@@ -13,7 +13,8 @@ import {
   Sparkles, 
   FileText,
   Clock,
-  Laptop
+  Laptop,
+  Download
 } from 'lucide-react';
 import { WorkItem } from '../types';
 
@@ -24,6 +25,7 @@ interface StoryModalProps {
 
 export const StoryModal: React.FC<StoryModalProps> = ({ work, onClose }) => {
   const [copied, setCopied] = useState(false);
+  const [showPdfEmbed, setShowPdfEmbed] = useState(false);
 
   if (!work) return null;
 
@@ -177,6 +179,68 @@ export const StoryModal: React.FC<StoryModalProps> = ({ work, onClose }) => {
             </div>
           )}
 
+          {/* Embedded PDF Viewer Section for Magazines & PDF Documents */}
+          {work.url && (work.url.endsWith('.pdf') || work.format === 'magazine') && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-pink-50 to-rose-50 dark:from-zinc-800 dark:to-zinc-800/90 border border-pink-200 dark:border-zinc-700 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-pink-500 text-white shadow-sm">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-white">
+                      Complete Publication Issue (PDF)
+                    </h4>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Read through the entire high-resolution issue right here or expand
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPdfEmbed(!showPdfEmbed)}
+                    className="px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-900 hover:bg-pink-100 dark:hover:bg-zinc-700 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-zinc-700 text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>{showPdfEmbed ? 'Collapse PDF Reader' : '📖 Read Inside App (PDF Viewer)'}</span>
+                  </button>
+                  <a
+                    href={work.url}
+                    download={`${work.title.replace(/\s+/g, '_')}.pdf`}
+                    className="px-3.5 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download PDF</span>
+                  </a>
+                </div>
+              </div>
+
+              {showPdfEmbed && (
+                <div className="w-full rounded-2xl overflow-hidden border border-pink-300 dark:border-zinc-700 bg-zinc-950 shadow-2xl animate-in fade-in">
+                  <div className="bg-zinc-900 px-4 py-2 text-xs text-zinc-300 flex items-center justify-between border-b border-zinc-800">
+                    <span className="font-mono text-[11px]">Interactive Reader: {work.title}</span>
+                    <a
+                      href={work.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-pink-400 hover:text-pink-300 flex items-center gap-1 text-[11px]"
+                    >
+                      <span>Full Window</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                  <iframe
+                    src={`${work.url}#toolbar=1&navpanes=0`}
+                    title={work.title}
+                    className="w-full h-[580px] sm:h-[650px] border-none"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Tags */}
           <div className="flex flex-wrap gap-2 pt-2">
             {work.tags.map((tag, idx) => (
@@ -197,13 +261,24 @@ export const StoryModal: React.FC<StoryModalProps> = ({ work, onClose }) => {
             Platform / Medium: <span className="text-zinc-900 dark:text-white font-semibold">{work.publicationOrPlatform}</span>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             <button
               onClick={onClose}
               className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-pink-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-pink-100 dark:hover:bg-zinc-700 border border-pink-200 dark:border-zinc-700 text-xs font-semibold cursor-pointer"
             >
               Close
             </button>
+
+            {work.url && work.url.endsWith('.pdf') && (
+              <a
+                href={work.url}
+                download={`${work.title ? work.title.replace(/\s+/g, '_') : 'document'}.pdf`}
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-pink-50 dark:bg-zinc-800 hover:bg-pink-100 dark:hover:bg-zinc-700 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-zinc-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download PDF</span>
+              </a>
+            )}
 
             {work.url && work.url !== '#' && (
               <a
@@ -218,10 +293,10 @@ export const StoryModal: React.FC<StoryModalProps> = ({ work, onClose }) => {
                     <Play className="w-3.5 h-3.5 fill-white" />
                     <span>Watch Film / Video</span>
                   </>
-                ) : work.format === 'magazine' ? (
+                ) : work.format === 'magazine' || work.url.endsWith('.pdf') ? (
                   <>
                     <BookOpen className="w-3.5 h-3.5" />
-                    <span>Read Publication / Issue</span>
+                    <span>Open Magazine PDF</span>
                   </>
                 ) : work.format === 'app' || work.url.includes('vercel.app') ? (
                   <>
