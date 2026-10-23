@@ -4,7 +4,6 @@ import {
   ExternalLink, 
   ArrowUpRight, 
   CheckCircle2, 
-  Accessibility, 
   Activity, 
   Eye, 
   BookOpen, 
@@ -40,7 +39,7 @@ export const JournalismSection: React.FC<JournalismSectionProps> = ({
               The Hans India & National Reporting
             </h2>
             <p className="text-sm sm:text-base text-zinc-600 mt-2 max-w-2xl font-sans">
-              Investigative dispatches and civic reporting focused on universal accessibility, disability rights, public health campaigns, and local governance.
+              Investigative dispatches and on-ground civic reporting covering public administration, healthcare campaigns, and grassroots governance.
             </p>
           </div>
 

@@ -35,10 +35,12 @@ import {
   Share2,
   Award,
   Crop,
-  ArrowLeft
+  ArrowLeft,
+  Globe
 } from 'lucide-react';
 import { UserProfile, WorkItem, ReviewItem, PortfolioMode } from '../types';
 import { formatDirectImageUrl } from '../utils/imageUtils';
+import { compressImageFile } from '../utils/imageCompressor';
 import { ExperienceEditorTab } from './ExperienceEditorTab';
 import { CertificatesEditorTab } from './CertificatesEditorTab';
 import { AIWorkSummaryStudio } from './AIWorkSummaryStudio';
@@ -58,6 +60,9 @@ interface PortfolioEditorModalProps {
   onResetToDefaults: () => void;
   onSwitchMode?: (mode: PortfolioMode) => void;
   onOpenChangePhoto?: (target?: 'hero' | 'about', tab?: 'source' | 'crop') => void;
+  onPublishLive?: () => Promise<boolean> | void;
+  isPublishingLive?: boolean;
+  syncStatus?: 'synced' | 'syncing' | 'error';
 }
 
 export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
@@ -74,7 +79,10 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
   onDeleteReview,
   onResetToDefaults,
   onSwitchMode,
-  onOpenChangePhoto
+  onOpenChangePhoto,
+  onPublishLive,
+  isPublishingLive = false,
+  syncStatus = 'synced',
 }) => {
   const [activeTab, setActiveTab] = useState<'works' | 'experience' | 'certificates' | 'ai_studio' | 'profile' | 'links' | 'reviews' | 'security'>('works');
   
@@ -399,20 +407,23 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
     setAiSuccessMessage(null);
   };
 
-  const handleWorkImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleWorkImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 8 * 1024 * 1024) {
-        alert('File is larger than 8MB. Please select a smaller photo.');
-        return;
+      try {
+        const compressed = await compressImageFile(file, 1600, 1600, 0.85);
+        setWorkImage(compressed);
+        showSaveToast('Image optimized & ready to publish!');
+      } catch (err) {
+        console.warn('Image optimization fallback', err);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            setWorkImage(event.target.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
       }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setWorkImage(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -480,13 +491,20 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
       onAddWork(workData);
     }
 
+    if (onPublishLive) {
+      onPublishLive();
+    }
+
     handleCancelWorkForm();
-    showSaveToast(`Saved "${workData.title}" to portfolio!`);
+    showSaveToast(`Saved & published "${workData.title}" live to web!`);
   };
 
   const handleDeleteWorkItem = (id: string, title: string) => {
     if (window.confirm(`Delete "${title}" from your portfolio?`)) {
       onDeleteWork(id);
+      if (onPublishLive) {
+        onPublishLive();
+      }
       showSaveToast(`Removed "${title}"`);
     }
   };
@@ -648,45 +666,59 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
   };
 
   // Profile Form Handlers
-  const handleProfileHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfileHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          const newUrl = event.target.result as string;
-          setProfileForm(prev => ({ ...prev, avatarUrl: newUrl }));
-          onUpdateProfile({ ...profileForm, avatarUrl: newUrl });
-          showSaveToast('Profile picture updated! Opening crop studio to adjust framing...');
-          if (onOpenChangePhoto) {
-            setTimeout(() => {
-              onOpenChangePhoto('hero', 'crop');
-            }, 600);
-          }
+      try {
+        const newUrl = await compressImageFile(file, 1600, 1600, 0.85);
+        setProfileForm(prev => ({ ...prev, avatarUrl: newUrl }));
+        onUpdateProfile({ ...profileForm, avatarUrl: newUrl });
+        showSaveToast('Profile picture optimized & updated! Opening crop studio...');
+        if (onOpenChangePhoto) {
+          setTimeout(() => {
+            onOpenChangePhoto('hero', 'crop');
+          }, 600);
         }
-      };
-      reader.readAsDataURL(file);
+      } catch {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            const newUrl = event.target.result as string;
+            setProfileForm(prev => ({ ...prev, avatarUrl: newUrl }));
+            onUpdateProfile({ ...profileForm, avatarUrl: newUrl });
+            showSaveToast('Profile picture updated!');
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
-  const handleProfileAboutUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfileAboutUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          const newUrl = event.target.result as string;
-          setProfileForm(prev => ({ ...prev, aboutImageUrl: newUrl }));
-          onUpdateProfile({ ...profileForm, aboutImageUrl: newUrl });
-          showSaveToast('Field photo updated! Opening crop studio to adjust framing...');
-          if (onOpenChangePhoto) {
-            setTimeout(() => {
-              onOpenChangePhoto('about', 'crop');
-            }, 600);
-          }
+      try {
+        const newUrl = await compressImageFile(file, 1600, 1600, 0.85);
+        setProfileForm(prev => ({ ...prev, aboutImageUrl: newUrl }));
+        onUpdateProfile({ ...profileForm, aboutImageUrl: newUrl });
+        showSaveToast('Field photo optimized & updated! Opening crop studio...');
+        if (onOpenChangePhoto) {
+          setTimeout(() => {
+            onOpenChangePhoto('about', 'crop');
+          }, 600);
         }
-      };
-      reader.readAsDataURL(file);
+      } catch {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            const newUrl = event.target.result as string;
+            setProfileForm(prev => ({ ...prev, aboutImageUrl: newUrl }));
+            onUpdateProfile({ ...profileForm, aboutImageUrl: newUrl });
+            showSaveToast('Field photo updated!');
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -743,6 +775,35 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Direct 1-Click Publish to Live button for all visitors */}
+            {onPublishLive && (
+              <button
+                id="modal-btn-publish-live"
+                onClick={async () => {
+                  await onPublishLive();
+                  showSaveToast('Published live to all devices!');
+                }}
+                disabled={isPublishingLive}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/40 transition-all text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-950/50 hover:scale-105 active:scale-95 disabled:opacity-50"
+                title="Publish and sync all your uploaded works to the live website so all external visitors and mobile devices can see them immediately"
+              >
+                {isPublishingLive ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                ) : (
+                  <Globe className="w-3.5 h-3.5 text-emerald-200" />
+                )}
+                <span className="hidden sm:inline">
+                  {isPublishingLive ? 'Publishing...' : 'Publish Live to Web'}
+                </span>
+                <span className="sm:hidden">
+                  {isPublishingLive ? 'Publishing...' : 'Publish'}
+                </span>
+                <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-white text-[10px] font-mono">
+                  {works.length}
+                </span>
+              </button>
+            )}
+
             {saveNotification && (
               <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-semibold animate-in fade-in">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -898,6 +959,34 @@ export const PortfolioEditorModal: React.FC<PortfolioEditorModalProps> = ({
                       <Plus className="w-4 h-4" />
                       <span>Add Work / Project / Paper</span>
                     </button>
+                  </div>
+
+                  {/* Live Web Sync Status Banner */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                        <Globe className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-emerald-300 flex items-center gap-2">
+                          <span>Worldwide Live Visibility</span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        </div>
+                        <p className="text-[11px] text-zinc-300">
+                          All {works.length} works are published and accessible to all visitors on any device, phone, or computer.
+                        </p>
+                      </div>
+                    </div>
+                    {onPublishLive && (
+                      <button
+                        onClick={() => onPublishLive()}
+                        disabled={isPublishingLive}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 cursor-pointer shadow-md disabled:opacity-50"
+                      >
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>{isPublishingLive ? 'Publishing...' : 'Sync & Publish Now'}</span>
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

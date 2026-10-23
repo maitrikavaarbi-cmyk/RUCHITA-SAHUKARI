@@ -35,9 +35,9 @@ export const CommunicationsSection: React.FC = () => {
       tags: ["Media Relations", "Press Releases", "Brand Tone", "Strategic Comms"]
     },
     {
-      title: "Inclusive & Accessible Storytelling",
-      description: "Championing disability accessibility, universal design in media packaging, alt-text standards, and sensitive reporting practices.",
-      tags: ["Disability Advocacy", "Accessibility Standards", "Inclusive Language", "Ethics"]
+      title: "Editorial Ethics & Media Standards",
+      description: "Promoting verified reporting frameworks, ethical editorial decision-making, and sensitive community-centered journalism.",
+      tags: ["Media Ethics", "Fact-Checking", "Editorial Integrity", "Responsible Journalism"]
     }
   ];
 

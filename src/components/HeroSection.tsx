@@ -185,7 +185,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <div className="p-4 bg-white border-t border-pink-200 flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-widest text-pink-700/80 font-semibold">Specialization</div>
-                    <div className="text-sm font-bold text-zinc-900">Investigative, Accessibility & Digital News</div>
+                    <div className="text-sm font-bold text-zinc-900">Investigative, Civic & Digital Journalism</div>
                   </div>
                   {onOpenChangePhoto ? (
                     <button

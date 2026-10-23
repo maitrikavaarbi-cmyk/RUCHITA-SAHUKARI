@@ -17,7 +17,8 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Lazy Gemini client helper
 let aiClient: GoogleGenAI | null = null;
@@ -429,18 +430,18 @@ app.post("/api/ai/generate-career-summary", async (req, res) => {
         data: {
           headlinePitch: "Dedicated Journalist & Strategic Communicator translating complex societal challenges into clear, ethical, and high-impact stories.",
           careerSummary: `Ruchita Sahukari is an English Journalism graduate from the Indian Institute of Mass Communication (IIMC Dhenkanal) specializing in field reporting, media ethics, digital storytelling, and corporate communications. With published bylines in The Hans India, leadership in digital news initiatives like The Lit Scroll, and creation of interactive journalism tools such as Ethicly, she pairs investigative rigor with empathetic public interest reporting.`,
-          coverLetterBlurb: `As a journalism and communications professional trained at IIMC Dhenkanal, I bring a unique combination of on-ground investigative experience, ethical clarity, and modern multimedia storytelling. From reporting on disability rights and accessibility for national publications to directing high-engagement visual news series, I am committed to producing work that informs communities and drives measurable engagement.`,
+          coverLetterBlurb: `As a journalism and communications professional trained at IIMC Dhenkanal, I bring a unique combination of on-ground investigative experience, ethical clarity, and modern multimedia storytelling. From reporting on civic affairs and public policy for national publications to directing high-engagement visual news series, I am committed to producing work that informs communities and drives measurable engagement.`,
           keyCompetencies: [
-            "Investigative & Field Journalism (The Hans India bylines, accessibility audits)",
+            "Investigative & Field Journalism (The Hans India bylines, on-ground civic dispatches)",
             "Multimedia Newsroom Production (The Lit Scroll video reels, scripts, anchor PTCs)",
-            "Media Ethics & Digital Tool Development (Founder of Ethicly)",
-            "Long-form Analysis & Substack Essays (Cultural critique, media literacy)",
+            "Media Ethics & Digital Tool Development (Creator of Ethicly)",
+            "Long-form Analysis & Substack Essays (Cultural critique, public interest)",
             "Strategic Corporate & Non-Profit Communications (Advocacy copy, press releases)"
           ],
           interviewTalkingPoints: [
             "Proven track record of turning overlooked community issues into national published bylines",
             "Hands-on expertise across print, broadcast video (PTC), digital apps, and newsletter platforms",
-            "Uncompromising dedication to verification, ethical standards, and accessibility"
+            "Uncompromising dedication to verification, ethical standards, and community impact"
           ]
         }
       });
@@ -453,7 +454,7 @@ Background:
 - Candidate: Ruchita Sahukari
 - Education: PG Diploma in English Journalism, IIMC Dhenkanal ('26)
 - Core Pillars: Ethical Journalism & Bylines (The Hans India), Multimedia Storytelling (The Lit Scroll Group E), Digital Tools (Ethicly), Substack Essays, Corporate Communications.
-- Core Identity: Passionate communicator, disability advocate (Osteogenesis Imperfecta—navigating field with pride and equality).
+- Core Identity: Passionate communicator and storyteller with uncompromising dedication to ethics and community voices.
 - Target Role: "${targetRole}"
 - Specialization Focus: "${specializationFocus}"
 - Sample Works Included: ${JSON.stringify(worksList.slice(0, 5).map((w: any) => ({ title: w.title, platform: w.publicationOrPlatform, format: w.format })))}

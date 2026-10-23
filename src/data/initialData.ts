@@ -32,7 +32,7 @@ export const INITIAL_USER_PROFILE: UserProfile = {
       title: "REPORT",
       subtitle: "Journalism & Reporting",
       description: "On-ground field stories, investigative features, interviews and issues that matter.",
-      tags: ["Field Reporting", "Accessibility", "Community", "Investigative"]
+      tags: ["Field Reporting", "Civic Journalism", "Community", "Investigative"]
     },
     {
       id: "create",
@@ -126,8 +126,8 @@ export const INITIAL_USER_PROFILE: UserProfile = {
     },
     {
       iconName: "Users",
-      title: "INCLUSION & ACCESSIBILITY",
-      description: "I advocate for accessibility and inclusive communication for persons with disabilities and underrepresented communities."
+      title: "INCLUSION & COMMUNITY",
+      description: "I believe in human-centered storytelling that uplifts community voices and brings grassroots realities into focus."
     },
     {
       iconName: "Sparkles",
@@ -186,34 +186,11 @@ export const INITIAL_WORKS: WorkItem[] = [
       "Interviews with persons with disabilities and local festival committee leaders",
       "Advocated for compliance with the Rights of Persons with Disabilities (RPwD) Act"
     ],
-    tags: ["Accessibility", "Field Journalism", "Human Rights", "Civic Issues"],
+    tags: ["Public Infrastructure", "Field Journalism", "Human Rights", "Civic Issues"],
     imageUrl: "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?q=80&w=800&auto=format&fit=crop",
     isFeatured: true,
     format: "article",
     readTimeOrDuration: "4 min read"
-  },
-
-  // ACADEMIC & FIELD RESEARCH STUDIES
-  {
-    id: "research-accessibility-audit",
-    title: "Universal Accessibility & Barrier-Free Infrastructure: An On-Ground Civic Audit of Public Spaces",
-    category: "research",
-    publicationOrPlatform: "IIMC Dhenkanal • Academic Field Study",
-    url: "https://drive.google.com/file/d/1ZO_62j92Chttim1KqlghCRAHWWNvTiM0/view?usp=sharing",
-    date: "Academic Research Monograph",
-    excerpt: "A comprehensive empirical field research paper examining infrastructure compliance with the RPwD Act 2016 across public utilities, transit nodes, and educational institutions in Odisha.",
-    fullDescription: "Conducted as part of academic research at IIMC Dhenkanal, this empirical field audit examines the physical and structural barriers faced by persons with disabilities in tier-2 and semi-rural urban spaces. Utilizing first-hand surveys, infrastructure slope measurements, and interviews with urban planners, the study evaluates compliance gaps under the Rights of Persons with Disabilities (RPwD) Act 2016 and proposes pragmatic architectural interventions.",
-    keyTakeaways: [
-      "Field audit of 18 public facilities and administrative offices assessing ramp slopes and tactile pathways",
-      "Analysis of compliance gaps under the Harmonised Guidelines for Universal Accessibility",
-      "Actionable policy recommendations for municipal authorities and inclusive urban development"
-    ],
-    tags: ["Research", "Accessibility", "RPwDAct", "UrbanPlanning", "Inclusion", "IIMC", "AcademicStudy"],
-    imageUrl: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=900&auto=format&fit=crop",
-    isFeatured: true,
-    isAcademicProject: true,
-    format: "research",
-    readTimeOrDuration: "Academic Paper"
   },
 
   // ACADEMIC PROJECTS & INNOVATIONS (IIMC DHENKANAL)
@@ -354,8 +331,8 @@ export const INITIAL_WORKS: WorkItem[] = [
     publicationOrPlatform: "Ruchita's Substack",
     url: "https://ruchitasahukari.substack.com/p/does-india-have-proper-medical-infrastructure",
     date: "Healthcare Policy Critique",
-    excerpt: "A data-driven critique examining disparities in healthcare accessibility, doctor-to-patient ratios, and rural medical centers in India.",
-    fullDescription: "An exhaustive look into India's public health apparatus, comparing metropolitan facilities with rural primary healthcare centers and evaluating access for disabled patients.",
+    excerpt: "A data-driven critique examining disparities in healthcare infrastructure, doctor-to-patient ratios, and rural medical centers in India.",
+    fullDescription: "An exhaustive look into India's public health apparatus, comparing metropolitan facilities with rural primary healthcare centers and evaluating medical readiness across regions.",
     keyTakeaways: [
       "Data-backed healthcare policy breakdown",
       "Evaluating rural vs urban hospital readiness",

@@ -301,7 +301,7 @@ export const AIWorkSummaryStudio: React.FC<AIWorkSummaryStudioProps> = ({
                       type="text"
                       value={customWorkTitle}
                       onChange={(e) => setCustomWorkTitle(e.target.value)}
-                      placeholder="e.g. In-Depth Report on Disability Rights"
+                      placeholder="e.g. In-Depth Report on Rural Public Health"
                       className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#d9823e]"
                     />
                   </div>
@@ -524,7 +524,7 @@ export const AIWorkSummaryStudio: React.FC<AIWorkSummaryStudioProps> = ({
                   rows={3}
                   value={specializationFocus}
                   onChange={(e) => setSpecializationFocus(e.target.value)}
-                  placeholder="e.g. Field reporting, disability advocacy, media ethics, Substack commentary..."
+                  placeholder="e.g. Field reporting, civic journalism, media ethics, Substack commentary..."
                   className="w-full bg-zinc-950 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-[#d9823e]"
                 />
               </div>
@@ -535,7 +535,7 @@ export const AIWorkSummaryStudio: React.FC<AIWorkSummaryStudioProps> = ({
                   <span>Integrated Portfolio Data</span>
                 </div>
                 <p>
-                  Gemini will synthesize your {works.length} published bylines, IIMC education, Osteogenesis Imperfecta advocacy, and The Hans India reporting automatically.
+                  Gemini will synthesize your {works.length} published bylines, IIMC education, published reporting, and verified works automatically.
                 </p>
               </div>
 

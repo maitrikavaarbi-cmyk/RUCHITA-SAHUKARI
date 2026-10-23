@@ -18,7 +18,9 @@ import {
   Key,
   Eye,
   Lock,
-  ArrowLeft
+  ArrowLeft,
+  Globe,
+  Loader2
 } from 'lucide-react';
 import { UserProfile, PortfolioMode } from '../types';
 import { ThemeToggle } from './ThemeToggle';
@@ -33,6 +35,9 @@ interface NavbarProps {
   onSwitchMode?: (targetMode: PortfolioMode) => void;
   onOpenUnlockModal?: () => void;
   worksCount: number;
+  onPublishLive?: () => Promise<boolean> | void;
+  isPublishingLive?: boolean;
+  syncStatus?: 'synced' | 'syncing' | 'error';
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ 
@@ -43,7 +48,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenShareModal,
   onSwitchMode,
   onOpenUnlockModal,
-  worksCount 
+  worksCount,
+  onPublishLive,
+  isPublishingLive = false,
+  syncStatus = 'synced'
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -170,6 +178,26 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {worksCount}
                 </span>
               </button>
+
+              {/* Publish Live Button to sync to all visitors */}
+              {onPublishLive && (
+                <button
+                  id="nav-btn-publish-live"
+                  onClick={() => onPublishLive()}
+                  disabled={isPublishingLive}
+                  className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 transition-transform hover:scale-105 cursor-pointer disabled:opacity-50"
+                  title="Publish all your uploaded works live to the web so everyone on any device can see them"
+                >
+                  {isPublishingLive ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Globe className="w-3.5 h-3.5 text-emerald-100" />
+                  )}
+                  <span className="hidden xl:inline">
+                    {isPublishingLive ? 'Publishing...' : 'Publish Live'}
+                  </span>
+                </button>
+              )}
 
               {/* Change / Crop Photo Trigger */}
               {onOpenChangePhoto && (

@@ -86,7 +86,7 @@ export const AboutExperienceSection: React.FC<AboutExperienceSectionProps> = ({
               </div>
 
               <p className="text-sm text-zinc-600 leading-relaxed font-sans">
-                Whether investigating the lack of wheelchair accessibility in festive pandals for <em>The Hans India</em>, anchoring vertical video news shorts for <em>The Lit Scroll</em>, or crafting donor advocacy copy for child welfare foundations, my focus remains constant: ensuring every piece of communication is authentic, clear, and impactful.
+                Whether reporting on civic administration and public health for <em>The Hans India</em>, anchoring vertical video news shorts for <em>The Lit Scroll</em>, or crafting donor advocacy copy for child welfare foundations, my focus remains constant: ensuring every piece of communication is authentic, clear, and impactful.
               </p>
               
               <div className="pt-4 border-t border-pink-100 flex flex-wrap items-center gap-4">

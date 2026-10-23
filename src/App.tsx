@@ -28,7 +28,7 @@ import { ChangePhotoModal, PhotoTargetSpot } from './components/ChangePhotoModal
 import { ShareLinksModal } from './components/ShareLinksModal';
 import { UnlockEditorModal } from './components/UnlockEditorModal';
 import { Footer } from './components/Footer';
-import { CheckCircle2, Sparkles, Camera, Briefcase, Eye, Key, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, Sparkles, Camera, Briefcase, Eye, Key, ArrowLeft, Globe, Loader2 } from 'lucide-react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 const STORAGE_KEY_PROFILE = 'ruchita_portfolio_profile_v10';
@@ -85,7 +85,13 @@ function PortfolioAppContent() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_WORKS);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(
+            w => w.id !== 'research-accessibility-audit' && 
+                 !(w.title && w.title.toLowerCase().includes('universal accessibility') && w.title.toLowerCase().includes('barrier-free'))
+          );
+        }
       }
       return INITIAL_WORKS;
     } catch {
@@ -136,6 +142,10 @@ function PortfolioAppContent() {
     }, 3500);
   };
 
+  // Sync state for live publication
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
+  const [isPublishingLive, setIsPublishingLive] = useState(false);
+
   // 1. Initial Load: Fetch latest saved portfolio data from server (so all visitors get the updated content & photos)
   useEffect(() => {
     async function loadServerData() {
@@ -144,12 +154,67 @@ function PortfolioAppContent() {
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data) {
-            if (json.data.profile) setProfile(json.data.profile);
-            if (json.data.works && Array.isArray(json.data.works) && json.data.works.length > 0) {
-              setWorks(json.data.works);
+            const isUnwantedResearch = (w: WorkItem) =>
+              w.id === 'research-accessibility-audit' ||
+              Boolean(w.title && w.title.toLowerCase().includes('universal accessibility') && w.title.toLowerCase().includes('barrier-free'));
+
+            const serverWorks: WorkItem[] = (Array.isArray(json.data.works) ? json.data.works : []).filter(w => !isUnwantedResearch(w));
+            
+            // Check if this PC's local storage contains works that are not yet on the server
+            let localWorks: WorkItem[] = [];
+            try {
+              const saved = localStorage.getItem(STORAGE_KEY_WORKS);
+              if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                  localWorks = parsed.filter(w => !isUnwantedResearch(w));
+                  localStorage.setItem(STORAGE_KEY_WORKS, JSON.stringify(localWorks));
+                }
+              }
+            } catch {}
+
+            const serverWorkIds = new Set(serverWorks.map(w => w.id));
+            const serverWorkTitles = new Set(serverWorks.map(w => w.title?.toLowerCase().trim()));
+            const localExtraWorks = localWorks.filter(
+              lw => !serverWorkIds.has(lw.id) && !serverWorkTitles.has(lw.title?.toLowerCase().trim())
+            );
+
+            if (localExtraWorks.length > 0) {
+              console.log(`Discovered ${localExtraWorks.length} uploaded work(s) in local PC storage not yet on server. Merging and publishing live...`);
+              const mergedWorks = [...localExtraWorks, ...serverWorks];
+              setWorks(mergedWorks);
+              const mergedProfile = json.data.profile || profile;
+              const mergedReviews = json.data.reviews || reviews;
+              if (json.data.profile) setProfile(json.data.profile);
+              if (json.data.reviews) setReviews(json.data.reviews);
+              
+              // Immediately publish the merged list to the live server
+              syncToServer(mergedProfile, mergedWorks, mergedReviews, false);
+            } else if (serverWorks.length > 0) {
+              setWorks(serverWorks);
+              localStorage.setItem(STORAGE_KEY_WORKS, JSON.stringify(serverWorks));
+              if (json.data.profile) {
+                setProfile(json.data.profile);
+                localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(json.data.profile));
+              }
+              if (json.data.reviews && Array.isArray(json.data.reviews)) {
+                setReviews(json.data.reviews);
+                localStorage.setItem(STORAGE_KEY_REVIEWS, JSON.stringify(json.data.reviews));
+              }
+              setSyncStatus('synced');
             }
-            if (json.data.reviews && Array.isArray(json.data.reviews)) {
-              setReviews(json.data.reviews);
+          } else {
+            // Server has no saved portfolio data yet (e.g., fresh container start)
+            // Check if this PC has uploaded works stored in localStorage
+            let localWorks: WorkItem[] = [];
+            try {
+              const saved = localStorage.getItem(STORAGE_KEY_WORKS);
+              if (saved) localWorks = JSON.parse(saved);
+            } catch {}
+
+            if (localWorks.length > 0) {
+              console.log(`Publishing ${localWorks.length} works from local PC storage to live server...`);
+              syncToServer(profile, localWorks, reviews, false);
             }
           }
         }
@@ -189,8 +254,11 @@ function PortfolioAppContent() {
   const syncToServer = async (
     updatedProfile: UserProfile = profile, 
     updatedWorks: WorkItem[] = works, 
-    updatedReviews: ReviewItem[] = reviews
-  ) => {
+    updatedReviews: ReviewItem[] = reviews,
+    showSuccessToast = true
+  ): Promise<boolean> => {
+    setIsPublishingLive(true);
+    setSyncStatus('syncing');
     try {
       const res = await fetch('/api/portfolio', {
         method: 'POST',
@@ -202,11 +270,30 @@ function PortfolioAppContent() {
         })
       });
       if (res.ok) {
-        showToast('Changes saved & published live to your portfolio!');
+        setSyncStatus('synced');
+        setIsPublishingLive(false);
+        if (showSuccessToast) {
+          showToast(`Published live! All ${updatedWorks.length} works are now visible to everyone.`);
+        }
+        return true;
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        setSyncStatus('error');
+        setIsPublishingLive(false);
+        showToast(`Sync warning: ${errJson.error || res.statusText}. Click "Publish Live" to retry.`);
+        return false;
       }
     } catch (err) {
       console.warn('Server sync error', err);
+      setSyncStatus('error');
+      setIsPublishingLive(false);
+      showToast('Network error while publishing. Please check connection and click "Publish Live".');
+      return false;
     }
+  };
+
+  const handlePublishLive = async () => {
+    return await syncToServer(profile, works, reviews, true);
   };
 
   // Handlers for Managing Works & Profile Photos (2 Distinct Spots)
@@ -337,6 +424,9 @@ function PortfolioAppContent() {
         onSwitchMode={handleSwitchMode}
         onOpenUnlockModal={() => setIsUnlockModalOpen(true)}
         worksCount={works.length}
+        onPublishLive={handlePublishLive}
+        isPublishingLive={isPublishingLive}
+        syncStatus={syncStatus}
       />
 
       <main id="main-content">
@@ -475,6 +565,9 @@ function PortfolioAppContent() {
           setIsEditorOpen(false);
           setIsChangePhotoOpen(true);
         }}
+        onPublishLive={handlePublishLive}
+        isPublishingLive={isPublishingLive}
+        syncStatus={syncStatus}
       />
 
       {/* Floating On-Site Owner Dock (Visible when unlocked in Owner Mode) */}
@@ -492,6 +585,24 @@ function PortfolioAppContent() {
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>+ Upload Work</span>
+          </button>
+
+          {/* Quick 1-Click Publish Live to All Visitors */}
+          <button
+            id="floating-publish-live-btn"
+            onClick={handlePublishLive}
+            disabled={isPublishingLive}
+            className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 border border-emerald-400/40 cursor-pointer transition-transform hover:scale-105 disabled:opacity-50"
+            title="Publish all works live to web so external visitors and other devices can see them immediately"
+          >
+            {isPublishingLive ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Globe className="w-3.5 h-3.5" />
+            )}
+            <span className="hidden sm:inline">
+              {isPublishingLive ? 'Publishing...' : 'Publish Live'}
+            </span>
           </button>
 
           <button
